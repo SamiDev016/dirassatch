@@ -27,8 +27,8 @@ const Header = () => {
           <a className="hover:text-blue-500 cursor-pointer" href="#">Contact</a>
         </ul>
         {isLoggedIn() ? (
-          <div className="flex gap-2">
-            <a className="cursor-pointer hover:text-blue-500" onClick={() => navigate("/test")}>Profile</a>
+          <div className="flex gap-2 items-center">
+            <a className="cursor-pointer hover:text-blue-500" onClick={() => navigate("/test")}>Dashboard</a>
             <button
               className="cursor-pointer hover:text-red-500 px-2 py-1 rounded disabled:opacity-60 bg-transparent border-none"
               onClick={handleLogout}

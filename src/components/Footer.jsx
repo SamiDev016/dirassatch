@@ -1,8 +1,8 @@
 const Footer = () => {
   return (
-    <div className="center py-5 px-10 bg-transparent position-absolute bottom-0" style={{ borderTop: "1px solid #ccc" ,borderTopWidth: "1px", position: "fixed", bottom: 0, width: "100%"}}>
-      <p className="text-gray-500 text-sm transition">Copyright © 2025 Dirassa Tech. All rights reserved.</p>
-    </div>
+    <footer className="fixed bottom-0 left-0 w-full z-50 bg-gradient-to-tr from-blue-50 via-white to-blue-100 border-t border-blue-200 shadow-inner py-4 flex items-center justify-center mt-20">
+      <p className="text-gray-600 text-base font-medium tracking-wide">Copyright  2025 <span className="font-bold text-blue-700">Dirassa Tech</span>. All rights reserved.</p>
+    </footer>
   )
 }
 

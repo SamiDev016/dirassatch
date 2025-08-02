@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import { storeUserInfo } from "../utils/auth"
 
 const Login = () => {
     const [form, setForm] = useState({
@@ -37,8 +38,8 @@ const Login = () => {
             }
             const data = await response.json();
             console.log(data);
-            localStorage.setItem("token", data.accessToken);
-            console.log("Token stored:", data.accessToken);
+            storeUserInfo(data);
+            console.log("User info stored:", data);
             navigate("/test");
         } catch (error) {
             setError(error.message);
