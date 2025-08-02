@@ -10,11 +10,15 @@ const CourseDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+
     useEffect(() => {
         const fetchCourse = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`/api/course/${id}`);
+                const response = await fetch(`${API_BASE}/course/${id}`);
                 if (!response.ok) throw new Error("Failed to fetch course");
                 const data = await response.json();
                 setCourse(data);

@@ -9,6 +9,9 @@ const Test = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
     useEffect(() => {
         if(!isLoggedIn()){
             navigate("/login");
@@ -16,7 +19,7 @@ const Test = () => {
         const fetchUser = async () => {
             try {
                 console.log(getToken());
-                const response = await fetch("/api/user/me", {
+                const response = await fetch(`${API_BASE}/user/me`, {
                     headers: {
                         "Authorization": `Bearer ${getToken()}`
                     }

@@ -13,11 +13,15 @@ const AcademyDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [AcademyCourses, setAcademyCourses] = useState([]);
+
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
     useEffect(() => {
         const fetchAcademy = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`/api/academy/${id}`);
+                const response = await fetch(`${API_BASE}/academy/${id}`);
                 if (!response.ok) throw new Error("Failed to fetch academy");
                 const data = await response.json();
                 setAcademy(data);
@@ -31,7 +35,7 @@ const AcademyDetail = () => {
         const fetchAcademyCourses = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`/api/course/academy/${id}`);
+                const response = await fetch(`${API_BASE}/course/academy/${id}`);
                 if (!response.ok) throw new Error("Failed to fetch academy courses");
                 const data = await response.json();
                 setAcademyCourses(data);

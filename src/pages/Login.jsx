@@ -11,6 +11,10 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
     const handleChange = (e) => {
         setForm(prev => ({
             ...prev,
@@ -21,7 +25,7 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await fetch("/api/auth/login", {
+            const response = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

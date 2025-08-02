@@ -14,10 +14,14 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [posts, setPosts] = useState([]);
 
+  const API_BASE = import.meta.env.PROD
+  ? import.meta.env.VITE_API_URL
+  : "/api";
+
   const fetchAcademies = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/academy/all`);
+      const response = await fetch(`${API_BASE}/academy/all`);
       if(!response.ok){
         throw new Error("Failed to fetch academies.");
       }
@@ -36,7 +40,7 @@ const App = () => {
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/post/all`);
+      const response = await fetch(`${API_BASE}/post/all`);
       if(!response.ok){
         throw new Error("Failed to fetch posts.");
       }

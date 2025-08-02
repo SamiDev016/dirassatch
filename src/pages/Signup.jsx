@@ -13,6 +13,10 @@ const Signup = () => {
         phone: ""
     });
 
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+
     const [errorMessage, setErrorMessage] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -32,7 +36,7 @@ const Signup = () => {
         setLoading(true);
         try {
             // Signup
-            const res = await fetch("/api/auth/signup", {
+            const res = await fetch(`${API_BASE}/auth/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -46,7 +50,7 @@ const Signup = () => {
             }
 
             // After signup, login with same credentials
-            const loginRes = await fetch("/api/auth/login", {
+            const loginRes = await fetch(`${API_BASE}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
