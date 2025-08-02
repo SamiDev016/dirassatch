@@ -67,9 +67,7 @@ const Signup = () => {
             }
 
             const loginData = await loginRes.json();
-            console.log(loginData);
-            localStorage.setItem("token", loginData.accessToken);
-            console.log("Token stored:", loginData.accessToken);
+            storeUserInfo(loginData);
             navigate("/test");
         } catch (error) {
             setErrorMessage(error.message);
