@@ -13,6 +13,7 @@ const App = () => {
   const [academies, setAcademies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [posts, setPosts] = useState([]);
+  const [courses, setCourses] = useState([]);
 
   const API_BASE = import.meta.env.PROD
   ? import.meta.env.VITE_API_URL
@@ -56,9 +57,29 @@ const App = () => {
     }
   };
 
+  const fetchCourses = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${API_BASE}/course/all`);
+      if(!response.ok){
+        throw new Error("Failed to fetch courses.");
+      }
+      const data = await response.json();
+      if(data.Response === "False"){
+        setErrorMessage(data.Message);
+      }
+      setCourses(data.slice(0, 8));
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+      setErrorMessage(error.message || "Failed to courses.");
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
     fetchAcademies();
+    fetchCourses();
   }, []);
 
   return (
@@ -70,7 +91,8 @@ const App = () => {
         academies,
         errorMessage,
         isLoading,
-        posts
+        posts,
+        courses
       }} />
       <Footer />
     </div>

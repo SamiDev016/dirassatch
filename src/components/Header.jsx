@@ -18,17 +18,20 @@ const Header = () => {
 
     return (
       <div className="flex justify-between py-5" style={{ borderBottom: "1px solid #ccc" }}>
-        <a className="font-bold p-2 rounded-md" href="/">Dirassa Tech</a>
-        <ul className="flex gap-5">
-          <a className="hover:text-blue-500 cursor-pointer" href="/">Home </a>
-          <a className="hover:text-blue-500 cursor-pointer" href="/academies">Academies</a>
-          <a className="hover:text-blue-500 cursor-pointer" href="/courses">Courses</a>
-          <a className="hover:text-blue-500 cursor-pointer" href="/about">About</a>
-          <a className="hover:text-blue-500 cursor-pointer" href="#">Contact</a>
+        <div className="flex gap-5">
+          <img id="custom-logo-image" src="https://png.pngtree.com/png-clipart/20230928/original/pngtree-education-school-logo-design-student-literature-academy-vector-png-image_12898118.png" alt="Dirassa Tech Logo" />
+          <a id="custom-logo" className="font-bold p-2 rounded-md cursor-pointer hover:text-blue-500" href="/">DirassaTech</a>
+        </div>
+        <ul className="flex gap-10">
+          <a className="hover:text-blue-500 cursor-pointer h-10 w-20 text-lg font-bold" href="/">Home </a>
+          <a className="hover:text-blue-500 cursor-pointer h-10 w-20 text-lg font-bold" href="/academies">Academies</a>
+          <a className="hover:text-blue-500 cursor-pointer h-10 w-20 text-lg font-bold" href="/courses">Courses</a>
+          <a className="hover:text-blue-500 cursor-pointer h-10 w-20 text-lg font-bold" href="/about">About</a>
+          <a className="hover:text-blue-500 cursor-pointer h-10 w-20 text-lg font-bold" href="/contact">Contact</a>
         </ul>
         {isLoggedIn() ? (
           <div className="flex gap-2 items-center">
-            <a className="cursor-pointer hover:text-blue-500" onClick={() => navigate("/test")}>Dashboard</a>
+            <a className="cursor-pointer hover:text-blue-500 font-bold" onClick={() => navigate("/adminDashboard")}>Dashboard</a>
             <button
               className="cursor-pointer hover:text-red-500 px-2 py-1 rounded disabled:opacity-60 bg-transparent border-none"
               onClick={handleLogout}
@@ -39,8 +42,7 @@ const Header = () => {
           </div>
         ) : (
           <div className="flex gap-2">
-            <a className="cursor-pointer hover:text-blue-500" onClick={() => navigate("/signup")}>Create Account</a>
-            <a className="cursor-pointer hover:text-blue-500" onClick={() => navigate("/login")}>Login</a>
+            <a className="cursor-pointer hover:text-blue-500 font-bold" onClick={() => navigate("/signup")}>Join Us</a>
           </div>
         )}
       </div>

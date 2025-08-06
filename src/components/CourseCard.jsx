@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { getToken, getUserId } from "../utils/auth"
+import { getToken, getUserId, isLoggedIn } from "../utils/auth"
 import Spinner from "./Spinner"
-const CourseCard = ({course}) => {
+
+
+const CourseCard = ({course,isFromHome}) => {
     const navigate = useNavigate();
     
     const API_BASE = import.meta.env.PROD
@@ -41,11 +43,25 @@ const CourseCard = ({course}) => {
     };
 
     return (
-        <div className="flex flex-col bg-white shadow rounded p-4 hover:shadow-lg transition">
-            <img className="w-full h-48 object-cover rounded" src={course.coverPhoto} alt={course.name} />
+
+        <div id="course-card" className="flex flex-col bg-white shadow rounded p-4 hover:shadow-lg transition">
+            <img className="w-full h-96 object-cover rounded" src={course.coverPhoto} alt={course.name} />
             <h1 className="font-bold text-lg mt-3">{course.name}</h1>
-            {/* <a href={`/course/${course.id}`} className="bg-blue-500 text-white p-2 rounded mt-3 cursor-pointer hover:bg-blue-600 transition" target="_blank">View Details</a> */}
-            <button onClick={handleRequestEnrollment(true)} className="bg-blue-500 text-white p-2 rounded mt-3 cursor-pointer hover:bg-blue-600 transition">Request Enrollment</button>
+            <hr className="my-3" style={{borderColor: "#ccc"}}/>
+            <button
+                hidden={isFromHome}
+                onClick={() => {
+                    if (isLoggedIn()) {
+                        handleRequestEnrollment(true)();
+                    } else {
+                        navigate("/login");
+                    }
+                }}
+                className="p-2 rounded mt-3 cursor-pointer transition"
+                >
+                Request Enrollment
+            </button>
+            <button hidden={!isFromHome} onClick={() => navigate(`/course/${course.id}`)} className="p-2 rounded mt-3 cursor-pointer transition hover:bg-blue-600 hover:text-white">View Details</button>
             {error && <p className="text-red-500 mt-3">{error}</p>}
             {loading && <Spinner />}
         </div>

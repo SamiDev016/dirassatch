@@ -40,7 +40,7 @@ const Login = () => {
             console.log(data);
             storeUserInfo(data);
             console.log("User info stored:", data);
-            navigate("/test");
+            navigate("/adminDashboard");
         } catch (error) {
             setError(error.message);
         } finally {
@@ -48,23 +48,25 @@ const Login = () => {
         }
     };
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div>
             <Header />
-            <div className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-md w-full space-y-8 bg-white rounded-xl shadow-lg p-8">
-                    <h1 className="text-2xl font-bold text-center mb-6 text-blue-600">Login to Your Account</h1>
-                    {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4" disabled={loading}>
-                        <input type="email" name="email" placeholder="Email" onChange={handleChange} value={form.email} className="p-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
-                        <input type="password" name="password" placeholder="Password" onChange={handleChange} value={form.password} className="p-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
-                        <button type="submit" className="p-3 rounded bg-blue-500 text-white hover:bg-blue-600 transition font-semibold disabled:opacity-60" disabled={loading}>
-                            {loading ? "Loading..." : "Login"}
-                        </button>
-                    </form>
-                    <p className="text-center text-sm text-gray-500 mt-4">
-                        Don't have an account?{' '}
-                        <span className="text-blue-500 hover:underline cursor-pointer" onClick={() => navigate('/signup')}>Sign up</span>
-                    </p>
+            <div className="bg-gradient-to-tr from-blue-50 via-white to-blue-100 border-t border-blue-200 shadow-inner">
+                <div className="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-lg w-full space-y-8 bg-white rounded-xl shadow-lg p-8">
+                        <h1 className="text-2xl font-bold text-center mb-6 text-blue-500">Login to Your Account</h1>
+                        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4" disabled={loading}>
+                            <input type="email" name="email" placeholder="Email" onChange={handleChange} value={form.email} className="p-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+                            <input type="password" name="password" placeholder="Password" onChange={handleChange} value={form.password} className="p-3 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+                            <button type="submit" className="p-3 rounded bg-blue-500 text-white hover:bg-blue-600 transition font-semibold disabled:opacity-60" disabled={loading}>
+                                {loading ? "Loading..." : "Login"}
+                            </button>
+                        </form>
+                        <p className="text-center text-sm text-gray-500 mt-4">
+                            Don't have an account?{' '}
+                            <span className="text-blue-600 hover:underline cursor-pointer" onClick={() => navigate('/signup')}>Sign up</span>
+                        </p>
+                    </div>
                 </div>
             </div>
             <Footer />

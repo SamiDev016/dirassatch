@@ -29,6 +29,55 @@ export const storeUserInfo = (userInfo) => {
     console.log("User info stored:", userInfo);
 };
 
+export const getUserInfo = () => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+    const accountId = localStorage.getItem("accountId");
+    const email = localStorage.getItem("email");
+    const firstName = localStorage.getItem("firstName");
+    const lastName = localStorage.getItem("lastName");
+    const profilePhoto = localStorage.getItem("profilePhoto");
+    const isSuperAdmin = localStorage.getItem("isSuperAdmin");
+    const ownedAcademies = localStorage.getItem("ownedAcademies");
+    return {
+        token,
+        userId,
+        accountId,
+        email,
+        firstName,
+        lastName,
+        profilePhoto,
+        isSuperAdmin,
+        ownedAcademies
+    };
+};
+
+export const getUserRoles = async (userId, role) => {
+    const API_BASE = import.meta.env.PROD
+        ? import.meta.env.VITE_API_URL
+        : "/api";
+    let endpoint = "";
+
+    if (role === "super-admin") {
+        endpoint = `${API_BASE}/super-admin/${userId}`;
+    } else {
+        endpoint = `${API_BASE}/academy/user/${userId}?role=${role}`;
+    }
+    try {
+        const response = await fetch(endpoint);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && (Array.isArray(data) ? data.length > 0 : true)) {
+                console.log(data);
+                return data;
+            }
+        }
+        return [];
+    } catch (error) {
+        return [];
+    }
+};
+
 export const getUserId = () => {
     const id = localStorage.getItem("userId");
     return id ? Number(id) : null;
