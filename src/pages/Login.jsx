@@ -40,7 +40,7 @@ const Login = () => {
             console.log(data);
             storeUserInfo(data);
             console.log("User info stored:", data);
-            navigate("/adminDashboard");
+            navigate("/");
         } catch (error) {
             setError(error.message);
         } finally {

@@ -13,7 +13,11 @@ import AcademyDetail from './pages/AcademyDetail.jsx'
 import About from './pages/About.jsx'
 import Contact from './pages/Contact.jsx'
 import Test from './pages/Test.jsx'
-import AdminDashboard from './pages/AdminDashboard.jsx'
+import AdminDashboard from './pages/dashboard/AdminDashboard.jsx'
+import TeacherDashboard from './pages/dashboard/TeacherDashboard.jsx'
+import StudentDashboard from './pages/dashboard/StudentDashboard.jsx'
+import AcademyDashboard from './pages/dashboard/AcademyDashboard.jsx'
+import AdminDashboardAcademies from './pages/dashboard/AdminDashboard/AdminDashboardAcademies.jsx'
 
 
 const router = createBrowserRouter([
@@ -65,7 +69,28 @@ const router = createBrowserRouter([
   },
   {
     path:'/adminDashboard',
-    element:<AdminDashboard />
+    children:[
+      {
+        index:true,
+        element:<AdminDashboard />
+      },
+      {
+        path: '/adminDashboard/academies',
+        element:<AdminDashboardAcademies />
+      },
+    ],
+  },
+  {
+    path:'/teacherDashboard',
+    element:<TeacherDashboard />
+  },
+  {
+    path:'/studentDashboard',
+    element:<StudentDashboard />
+  },
+  {
+    path:'/academyDashboard',
+    element:<AcademyDashboard />
   }
 
 ])

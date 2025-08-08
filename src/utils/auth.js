@@ -23,7 +23,6 @@ export const storeUserInfo = (userInfo) => {
     if (userInfo.firstName) localStorage.setItem("firstName", userInfo.firstName);
     if (userInfo.lastName) localStorage.setItem("lastName", userInfo.lastName);
     if (userInfo.profilePhoto !== undefined) localStorage.setItem("profilePhoto", userInfo.profilePhoto);
-    if (userInfo.isSuperAdmin !== undefined) localStorage.setItem("isSuperAdmin", userInfo.isSuperAdmin);
     if (userInfo.ownedAcademies !== undefined) localStorage.setItem("ownedAcademies", userInfo.ownedAcademies);
 
     console.log("User info stored:", userInfo);
@@ -37,7 +36,6 @@ export const getUserInfo = () => {
     const firstName = localStorage.getItem("firstName");
     const lastName = localStorage.getItem("lastName");
     const profilePhoto = localStorage.getItem("profilePhoto");
-    const isSuperAdmin = localStorage.getItem("isSuperAdmin");
     const ownedAcademies = localStorage.getItem("ownedAcademies");
     return {
         token,
@@ -47,7 +45,6 @@ export const getUserInfo = () => {
         firstName,
         lastName,
         profilePhoto,
-        isSuperAdmin,
         ownedAcademies
     };
 };
@@ -68,7 +65,6 @@ export const getUserRoles = async (userId, role) => {
         if (response.ok) {
             const data = await response.json();
             if (data && (Array.isArray(data) ? data.length > 0 : true)) {
-                console.log(data);
                 return data;
             }
         }
@@ -77,6 +73,12 @@ export const getUserRoles = async (userId, role) => {
         return [];
     }
 };
+
+export const isSuperAdmin = async () => {
+    return true
+};
+
+
 
 export const getUserId = () => {
     const id = localStorage.getItem("userId");

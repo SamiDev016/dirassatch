@@ -69,7 +69,7 @@ const Signup = () => {
 
             const loginData = await loginRes.json();
             storeUserInfo(loginData);
-            navigate("/adminDashboard");
+            navigate("/");
         } catch (error) {
             setErrorMessage(error.message);
         } finally {
