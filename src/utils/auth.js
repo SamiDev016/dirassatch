@@ -1,102 +1,176 @@
-// export const isLoggedIn = () => {
-//     const token = localStorage.getItem("token");
-//     return !!token;
-//   };
-  
-//   export const logout = () => {
-//     localStorage.removeItem("token");
-//   };
-  
-//   export const getToken = () => {
-//     return localStorage.getItem("token");
-//   };
-export const isLoggedIn = () => {
-    const token = localStorage.getItem("token");
-    return !!token;
+
+// Retrieves the profile of the currently authenticated user. Requires a valid JWT token in the Authorization header.
+
+// Parameters
+// Cancel
+// Name	Description
+// Authorization *
+// string
+// (header)
+// JWT token
+
+// Bearer your-jwt-token-here
+// Execute
+// Responses
+// Code	Description	Links
+// 200	
+// Successfully retrieved user profile
+
+// Media type
+
+// application/json
+// Controls Accept header.
+// Example Value
+// Schema
+// {
+//   "id": 1,
+//   "email": "user@example.com",
+//   "firstName": "John",
+//   "lastName": "Doe",
+//   "profilePhoto": "https://example.com/profile.jpg",
+//   "isSuperAdmin": false,
+//   "createdAt": "2025-01-01T00:00:00.000Z",
+//   "updatedAt": "2025-01-01T00:00:00.000Z"
+// Users
+
+
+// GET
+// /user/me
+// Get current user profile
+
+
+// GET
+// /user/by-email/{email}
+// Get user by email
+
+
+// GET
+// /user/{id}
+// Get user by ID
+
+
+
+// POST
+// /user/edit-profile/{id}
+// Update user profile
+
+
+
+// POST
+// /user/change-profilePhoto/{id}
+// Change user profile photo
+
+
+
+export const setToken = (token) => {
+    localStorage.setItem("token", token);
 };
-
-export const storeUserInfo = (userInfo) => {
-    if (userInfo.accessToken) localStorage.setItem("token", userInfo.accessToken);
-    if (userInfo.userId) localStorage.setItem("userId", userInfo.userId);
-    if (userInfo.accountId) localStorage.setItem("accountId", userInfo.accountId);
-    if (userInfo.email) localStorage.setItem("email", userInfo.email);
-    if (userInfo.firstName) localStorage.setItem("firstName", userInfo.firstName);
-    if (userInfo.lastName) localStorage.setItem("lastName", userInfo.lastName);
-    if (userInfo.profilePhoto !== undefined) localStorage.setItem("profilePhoto", userInfo.profilePhoto);
-    if (userInfo.ownedAcademies !== undefined) localStorage.setItem("ownedAcademies", userInfo.ownedAcademies);
-
-    console.log("User info stored:", userInfo);
-};
-
-export const getUserInfo = () => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-    const accountId = localStorage.getItem("accountId");
-    const email = localStorage.getItem("email");
-    const firstName = localStorage.getItem("firstName");
-    const lastName = localStorage.getItem("lastName");
-    const profilePhoto = localStorage.getItem("profilePhoto");
-    const ownedAcademies = localStorage.getItem("ownedAcademies");
-    return {
-        token,
-        userId,
-        accountId,
-        email,
-        firstName,
-        lastName,
-        profilePhoto,
-        ownedAcademies
-    };
-};
-
-export const getUserRoles = async (userId, role) => {
-    const API_BASE = import.meta.env.PROD
-        ? import.meta.env.VITE_API_URL
-        : "/api";
-    let endpoint = "";
-
-    if (role === "super-admin") {
-        endpoint = `${API_BASE}/super-admin/${userId}`;
-    } else {
-        endpoint = `${API_BASE}/academy/user/${userId}?role=${role}`;
-    }
-    try {
-        const response = await fetch(endpoint);
-        if (response.ok) {
-            const data = await response.json();
-            if (data && (Array.isArray(data) ? data.length > 0 : true)) {
-                return data;
-            }
-        }
-        return [];
-    } catch (error) {
-        return [];
-    }
-};
-
-export const isSuperAdmin = async () => {
-    return true
-};
-
-
-
-export const getUserId = () => {
-    const id = localStorage.getItem("userId");
-    return id ? Number(id) : null;
-};
-
-export const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("accountId");
-    localStorage.removeItem("email");
-    localStorage.removeItem("firstName");
-    localStorage.removeItem("lastName");
-    localStorage.removeItem("profilePhoto");
-    localStorage.removeItem("isSuperAdmin");
-    localStorage.removeItem("ownedAcademies");
-};
-
 export const getToken = () => {
     return localStorage.getItem("token");
 };
+
+export const getUserId = () => {
+    const token = getToken();
+    if (!token) return null;
+    const decodedToken = JSON.parse(atob(token.split(".")[1]));
+    return decodedToken.id;
+};
+
+export const getUserProfile = async () => {
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/user/me`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch user profile");
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        return null;
+    }
+};
+
+export const setIsSuperAdmin = (isSuperAdmin) => {
+    localStorage.setItem("isSuperAdmin", isSuperAdmin);
+    console.log("IsSuperAdmin set successfully ::: " + isSuperAdmin)
+}
+export const getIsSuperAdmin = () => {
+    return localStorage.getItem("isSuperAdmin");
+}
+    
+
+export const getUserById = async (id) => {
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/user/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch user by ID");
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching user by ID:", error);
+        return null;
+    }
+};
+
+export const getUserByEmail = async (email) => {
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/user/by-email/${email}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch user by email");
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching user by email:", error);
+        return null;
+    }
+};
+
+export const updateUserProfile = async (id, data) => {
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/user/edit-profile/${id}`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error("Failed to update user profile");
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        return null;
+    }
+};
+
+export const isLoggedIn = () => {
+    const token = getToken();
+    return !!token;
+};
+
+
+export const logout = () => {
+    localStorage.removeItem("token");
+};
+

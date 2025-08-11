@@ -2,13 +2,10 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import { storeUserInfo } from "../utils/auth"
+import { setToken, setIsSuperAdmin } from "../utils/auth"
 
 const Login = () => {
-    const [form, setForm] = useState({
-        email: "",
-        password: ""
-    });
+    const [form, setForm] = useState({email: "",password: ""});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -17,11 +14,9 @@ const Login = () => {
     ? import.meta.env.VITE_API_URL
     : "/api";
     const handleChange = (e) => {
-        setForm(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
+        setForm(prev => ({...prev,[e.target.name]: e.target.value}));
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -37,9 +32,8 @@ const Login = () => {
                 throw new Error("Failed to login");
             }
             const data = await response.json();
-            console.log(data);
-            storeUserInfo(data);
-            console.log("User info stored:", data);
+            setToken(data.accessToken);
+            setIsSuperAdmin(data.isSuperAdmin);
             navigate("/");
         } catch (error) {
             setError(error.message);

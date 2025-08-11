@@ -2,8 +2,7 @@ import Header from "../components/Header"
 import Footer from "../components/Footer"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { isLoggedIn } from "../utils/auth"
-import { storeUserInfo } from "../utils/auth"
+import { setToken, setIsSuperAdmin } from "../utils/auth"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -32,7 +31,6 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMessage(null);
-
 
         setLoading(true);
         try {
@@ -68,7 +66,8 @@ const Signup = () => {
             }
 
             const loginData = await loginRes.json();
-            storeUserInfo(loginData);
+            setToken(loginData.accessToken);
+            setIsSuperAdmin(loginData.isSuperAdmin);
             navigate("/");
         } catch (error) {
             setErrorMessage(error.message);

@@ -1,10 +1,10 @@
 
 import { useEffect , useState} from "react"
-import { isLoggedIn, getToken, getUserId, getUserRoles, getUserInfo, isSuperAdmin } from "../../utils/auth"
 import { useNavigate } from "react-router-dom"
 import Header from "../../components/dashboard/Header"
 import Footer from "../../components/dashboard/Footer"
 import Sidebar from "../../components/dashboard/Sidebar"
+import { getToken } from "../../utils/auth"
 
 const AdminDashboard = () => {
 
@@ -15,7 +15,8 @@ const AdminDashboard = () => {
     : "/api";
 
     useEffect(() => {
-        if (!isLoggedIn()) {
+        const token = getToken();
+        if (!token) {
             navigate("/login");
             return;
         }

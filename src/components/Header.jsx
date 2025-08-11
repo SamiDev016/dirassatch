@@ -1,4 +1,4 @@
-import { isLoggedIn, logout, isSuperAdmin } from "../utils/auth"
+import { isLoggedIn, logout } from "../utils/auth"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import Spinner from "./Spinner"
@@ -31,9 +31,6 @@ const Header = () => {
         </ul>
         {isLoggedIn() ? (
           <div className="flex gap-2 items-center">
-            {isSuperAdmin() && (
-            <a className="cursor-pointer hover:text-blue-500 font-bold" onClick={() => navigate("/adminDashboard")}>Admin Dashboard</a>
-            )}
             <button
               className="cursor-pointer hover:text-red-500 px-2 py-1 rounded disabled:opacity-60 bg-transparent border-none"
               onClick={handleLogout}
