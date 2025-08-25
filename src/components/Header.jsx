@@ -1,4 +1,4 @@
-import { isLoggedIn, logout } from "../utils/auth"
+import { isLoggedIn, logout, getIsSuperAdmin } from "../utils/auth"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import Spinner from "./Spinner"
@@ -30,15 +30,32 @@ const Header = () => {
           <a className="hover:text-blue-500 cursor-pointer h-10 w-20 text-lg font-bold" href="/contact">Contact</a>
         </ul>
         {isLoggedIn() ? (
-          <div className="flex gap-2 items-center">
-            <button
-              className="cursor-pointer hover:text-red-500 px-2 py-1 rounded disabled:opacity-60 bg-transparent border-none"
-              onClick={handleLogout}
-              disabled={loggingOut}
-            >
-              {loggingOut ? <Spinner /> : "Logout"}
-            </button>
-          </div>
+          getIsSuperAdmin() == true ? (
+            <div className="flex gap-2 items-center">
+              <button
+                className="cursor-pointer hover:text-red-500 px-2 py-1 rounded disabled:opacity-60 bg-transparent border-none"
+                onClick={() => navigate("/adminDashboard")}
+              >
+                Admin Dashboard
+              </button>
+              <button
+                className="cursor-pointer hover:text-red-500 px-2 py-1 rounded disabled:opacity-60 bg-transparent border-none"
+                onClick={handleLogout}
+                disabled={loggingOut}
+              >
+                {loggingOut ? <Spinner /> : "Logout"}
+              </button>
+            </div>
+          ):
+            <div className="flex gap-2 items-center">
+              <button
+                className="cursor-pointer hover:text-red-500 px-2 py-1 rounded disabled:opacity-60 bg-transparent border-none"
+                onClick={handleLogout}
+                disabled={loggingOut}
+              >
+                {loggingOut ? <Spinner /> : "Logout"}
+              </button>
+            </div>
         ) : (
           <div className="flex gap-2">
             <a className="cursor-pointer hover:text-blue-500 font-bold" onClick={() => navigate("/signup")}>Join Us</a>

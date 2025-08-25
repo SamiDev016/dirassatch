@@ -1,69 +1,8 @@
 
-// Retrieves the profile of the currently authenticated user. Requires a valid JWT token in the Authorization header.
-
-// Parameters
-// Cancel
-// Name	Description
-// Authorization *
-// string
-// (header)
-// JWT token
-
-// Bearer your-jwt-token-here
-// Execute
-// Responses
-// Code	Description	Links
-// 200	
-// Successfully retrieved user profile
-
-// Media type
-
-// application/json
-// Controls Accept header.
-// Example Value
-// Schema
-// {
-//   "id": 1,
-//   "email": "user@example.com",
-//   "firstName": "John",
-//   "lastName": "Doe",
-//   "profilePhoto": "https://example.com/profile.jpg",
-//   "isSuperAdmin": false,
-//   "createdAt": "2025-01-01T00:00:00.000Z",
-//   "updatedAt": "2025-01-01T00:00:00.000Z"
-// Users
-
-
-// GET
-// /user/me
-// Get current user profile
-
-
-// GET
-// /user/by-email/{email}
-// Get user by email
-
-
-// GET
-// /user/{id}
-// Get user by ID
-
-
-
-// POST
-// /user/edit-profile/{id}
-// Update user profile
-
-
-
-// POST
-// /user/change-profilePhoto/{id}
-// Change user profile photo
-
-
 
 export const setToken = (token) => {
     localStorage.setItem("token", token);
+    console.log("Token set successfully ::: " + token)
 };
 export const getToken = () => {
     return localStorage.getItem("token");
@@ -76,31 +15,39 @@ export const getUserId = () => {
     return decodedToken.id;
 };
 
-export const getUserProfile = async () => {
+export const getUserData = async () => {
+    const token = getToken();
+    if (!token) return null;
+
     const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
+        ? import.meta.env.VITE_API_URL
+        : "/api";
+
     try {
         const response = await fetch(`${API_BASE}/user/me`, {
             headers: {
-                "Authorization": `Bearer ${getToken()}`
+                "Authorization": `Bearer ${token}`
             }
         });
-        if (!response.ok) throw new Error("Failed to fetch user profile");
-        const data = await response.json();
-        return data;
+
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        return await response.json();
     } catch (error) {
-        console.error("Error fetching user profile:", error);
+        console.error("Error fetching user data:", error);
         return null;
     }
 };
 
+
+
+
 export const setIsSuperAdmin = (isSuperAdmin) => {
-    localStorage.setItem("isSuperAdmin", isSuperAdmin);
-    console.log("IsSuperAdmin set successfully ::: " + isSuperAdmin)
-}
+    localStorage.setItem("isSuperAdmin", JSON.stringify(isSuperAdmin));
+    console.log("IsSuperAdmin set successfully ::: " + isSuperAdmin);
+};
 export const getIsSuperAdmin = () => {
-    return localStorage.getItem("isSuperAdmin");
+    return JSON.parse(localStorage.getItem("isSuperAdmin"));
 }
     
 
@@ -174,3 +121,79 @@ export const logout = () => {
     localStorage.removeItem("token");
 };
 
+
+
+export const getAllAcademies = async () => {
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/academy/all`, {
+        });
+        if (!response.ok) throw new Error("Failed to fetch academies");
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching academies:", error);
+        return null;
+    }
+};    
+
+
+export const createAcademy = async (data) => {
+    const API_BASE = import.meta.env.PROD
+        ? import.meta.env.VITE_API_URL
+        : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/academy/create`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            },
+            body: data
+        });
+        if (!response.ok) throw new Error("Failed to create academy");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating academy:", error);
+        return null;
+    }
+};
+
+
+
+// {
+//     "id": 1,
+//     "name": "optilens",
+//     "logo": "https://storage.googleapis.com/daracademyfireproject.appspot.com/academy_logo/292356b0-767a-4983-b1c4-05ce4ceeb14c.png",
+//     "phone": null,
+//     "email": null,
+//     "owners": [
+//       {
+//         "userId": 2,
+//         "firstName": "Rayan",
+//         "lastName": "Aouf",
+//         "profilePhoto": "",
+//         "isSuperAdmin": false,
+//         "email": "rayanaouf1512@gmail.com"
+//       }
+//     ]
+//   }
+
+export const getOwnersOfAcademy = async (id) => {
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/academy/${id}/owners`, {
+           
+        });
+        if (!response.ok) throw new Error("Failed to fetch owners of academy");
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching owners of academy:", error);
+        return null;
+    }
+}

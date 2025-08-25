@@ -34,6 +34,7 @@ const Login = () => {
             const data = await response.json();
             setToken(data.accessToken);
             setIsSuperAdmin(data.isSuperAdmin);
+            
             navigate("/");
         } catch (error) {
             setError(error.message);

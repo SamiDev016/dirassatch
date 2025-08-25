@@ -18,6 +18,8 @@ import TeacherDashboard from './pages/dashboard/TeacherDashboard.jsx'
 import StudentDashboard from './pages/dashboard/StudentDashboard.jsx'
 import AcademyDashboard from './pages/dashboard/AcademyDashboard.jsx'
 import AdminDashboardAcademies from './pages/dashboard/AdminDashboard/AdminDashboardAcademies.jsx'
+import AdminDashboardProfileSettings from './pages/dashboard/AdminDashboard/AdminDashboardProfileSettings.jsx'
+
 
 
 const router = createBrowserRouter([
@@ -77,6 +79,10 @@ const router = createBrowserRouter([
       {
         path: '/adminDashboard/academies',
         element:<AdminDashboardAcademies />
+      },
+      {
+        path: '/adminDashboard/profileSettings',
+        element:<AdminDashboardProfileSettings />
       },
     ],
   },

@@ -10,6 +10,7 @@ const Sidebar= () => {
                 <li className="cursor-pointer hover:text-blue-500" onClick={() => navigate("/adminDashboard/academies")}>Academies</li>
                 <li className="cursor-pointer hover:text-blue-500">Courses</li>
                 <li className="cursor-pointer hover:text-blue-500">Users</li>
+                <li className="cursor-pointer hover:text-blue-500" onClick={() => navigate("/adminDashboard/profileSettings")}>Profile Settings</li>
             </ul>
         </div>
     )
