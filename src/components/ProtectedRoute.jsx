@@ -1,17 +1,26 @@
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { isLoggedIn, getIsSuperAdmin , getUserData } from "../utils/auth";
+import { getUserRoles } from "../utils/auth";
 
+export default function ProtectedRoute({ children, allowedRoles = [] }) {
+  const [allowed, setAllowed] = useState(null);
 
-export default function ProtectedRoute({ children, role}) {
-    const isLoggedIn = isLoggedIn();
-    const isSuperAdmin = getIsSuperAdmin();
-    const userData = getUserData();
-    const userRole = userData?.roles;
+  useEffect(() => {
+    const checkRoles = async () => {
+      const { globalRoles } = await getUserRoles();
+      const hasAccess = allowedRoles.some(role => globalRoles.includes(role));
+      setAllowed(hasAccess);
+    };
+    checkRoles();
+  }, [allowedRoles]);
 
-    if (!isLoggedIn) {
-        return <Navigate to="/login" replace />;
-    }
-    
+  if (allowed === null) {
+    return <div className="p-6">⏳</div>;
+  }
 
-    return children;
+  if (!allowed) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
 }

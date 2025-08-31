@@ -13,12 +13,16 @@ import AcademyDetail from './pages/AcademyDetail.jsx'
 import About from './pages/About.jsx'
 import Contact from './pages/Contact.jsx'
 import Test from './pages/Test.jsx'
-import AdminDashboard from './pages/dashboard/AdminDashboard.jsx'
+import DashboardLayout from './pages/dashboard/layouts/DashboardLayout.jsx'
+import DashboardHome from './pages/dashboard/DashboardHome.jsx'
+import SuperAdminDashboard from './pages/dashboard/superadmin/SuperAdminDashboard.jsx'
 import TeacherDashboard from './pages/dashboard/TeacherDashboard.jsx'
 import StudentDashboard from './pages/dashboard/StudentDashboard.jsx'
-import AcademyDashboard from './pages/dashboard/AcademyDashboard.jsx'
-import AdminDashboardAcademies from './pages/dashboard/AdminDashboard/AdminDashboardAcademies.jsx'
-import AdminDashboardProfileSettings from './pages/dashboard/AdminDashboard/AdminDashboardProfileSettings.jsx'
+import AcademyAdminDashboard from './pages/dashboard/AcademyAdminDashboard.jsx'
+import ProfileSettings from './pages/dashboard/ProfileSettings.jsx'
+import AcademyDetails from './pages/dashboard/superadmin/AcademyDetails.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+
 
 
 
@@ -69,35 +73,39 @@ const router = createBrowserRouter([
     path: '/test',
     element:<Test />
   },
+
+
   {
-    path:'/adminDashboard',
-    children:[
+    path: '/dashboard',
+    element: <DashboardLayout />,
+    children: [
+      { index: true, element: <DashboardHome /> },
+
       {
-        index:true,
-        element:<AdminDashboard />
+        path: 'super-admin',
+        element: (
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        ),
       },
       {
-        path: '/adminDashboard/academies',
-        element:<AdminDashboardAcademies />
+        path: 'super-admin/academy/:academyId',
+        element: (
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <AcademyDetails />
+          </ProtectedRoute>
+        ),
       },
-      {
-        path: '/adminDashboard/profileSettings',
-        element:<AdminDashboardProfileSettings />
-      },
-    ],
-  },
-  {
-    path:'/teacherDashboard',
-    element:<TeacherDashboard />
-  },
-  {
-    path:'/studentDashboard',
-    element:<StudentDashboard />
-  },
-  {
-    path:'/academyDashboard',
-    element:<AcademyDashboard />
+
+      { path: 'academy/:academyId/teacher', element: <TeacherDashboard /> },
+      { path: 'academy/:academyId/student', element: <StudentDashboard /> },
+      { path: 'academy/:academyId/admin', element: <AcademyAdminDashboard /> },
+
+      { path: 'profile', element: <ProfileSettings /> },
+    ]
   }
+  
 
 ])
 

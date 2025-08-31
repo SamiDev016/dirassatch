@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import { setToken, setIsSuperAdmin } from "../utils/auth"
+import { setToken, setIsSuperAdmin, resolveDashboardRoute } from "../utils/auth"
 
 const Login = () => {
     const [form, setForm] = useState({email: "",password: ""});
@@ -35,7 +35,8 @@ const Login = () => {
             setToken(data.accessToken);
             setIsSuperAdmin(data.isSuperAdmin);
             
-            navigate("/");
+            const route = await resolveDashboardRoute();
+            navigate(route);
         } catch (error) {
             setError(error.message);
         } finally {

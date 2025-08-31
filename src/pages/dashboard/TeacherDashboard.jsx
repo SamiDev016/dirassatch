@@ -1,17 +1,9 @@
 
-import Header from "../../components/dashboard/Header"
-import Footer from "../../components/dashboard/Footer"
 
-const TeacherDashboard = () => {
-    return(
+export default function TeacherDashboard() {
+    return (
         <div>
-            <Header />
-            <div>
-                <h1>Teacher Dashboard</h1>
-            </div>
-            <Footer />
+            <h1>Teacher Dashboard</h1>
         </div>
-    )
+    );
 }
-
-export default TeacherDashboard
