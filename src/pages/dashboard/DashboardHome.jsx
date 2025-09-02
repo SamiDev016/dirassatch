@@ -57,6 +57,7 @@ export default function DashboardHome() {
                         <li key={a.academyId}>
                             <button
                                 onClick={async () => {
+                                    localStorage.setItem("selectedAcademyId", a.academyId);
                                     const route = await resolveDashboardRoute(a.academyId);
                                     setRedirectTo(route);
                                 }}

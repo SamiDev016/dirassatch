@@ -1,10 +1,11 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getUserRoles } from "../../../utils/auth";
 
 export default function DashboardLayout() {
   const [roles, setRoles] = useState({ globalRoles: [], academies: [] });
   const [loading, setLoading] = useState(true);
+  const { academyId } = useParams(); 
 
   useEffect(() => {
     const loadRoles = async () => {
@@ -19,7 +20,16 @@ export default function DashboardLayout() {
 
   const { globalRoles, academies } = roles;
   const isSuperAdmin = globalRoles.includes("superAdmin");
-  const hasAcademyAdmin = academies.some(a => a.roles.includes("manager"));
+
+  // find the current academy user is inside
+  const currentAcademy = academies.find(
+    (a) => String(a.academyId) === String(academyId)
+  );
+
+  const isAcademyAdmin =
+    currentAcademy &&
+    (currentAcademy.roles.includes("manager") ||
+      currentAcademy.roles.includes("owner"));
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -30,6 +40,7 @@ export default function DashboardLayout() {
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
+          {/* Common */}
           <Link
             to="/dashboard"
             className="block p-2 rounded cursor-pointer hover:bg-gray-200 text-gray-700"
@@ -60,18 +71,35 @@ export default function DashboardLayout() {
               </Link>
             </>
           )}
-
-          {/* Academy Admin Links */}
-          {hasAcademyAdmin && academies.map(a =>
-            a.roles.includes("manager") ? (
-              <Link
-                key={a.academyId}
-                to={`/dashboard/academy/${a.academyId}/admin`}
-                className="block p-2 rounded cursor-pointer hover:bg-gray-200 text-gray-700"
-              >
-                {a.academyName} (Admin)
-              </Link>
-            ) : null
+          {isAcademyAdmin && currentAcademy && (
+            <div className="mt-4">
+              <div className="ml-3 space-y-1">
+                <Link
+                  to={`/dashboard/academy/${currentAcademy.academyId}/admin/courses`}
+                  className="block p-2 rounded hover:bg-gray-200 text-gray-700"
+                >
+                  Courses
+                </Link>
+                <Link
+                  to={`/dashboard/academy/${currentAcademy.academyId}/admin/modules`}
+                  className="block p-2 rounded hover:bg-gray-200 text-gray-700"
+                >
+                  Modules
+                </Link>
+                <Link
+                  to={`/dashboard/academy/${currentAcademy.academyId}/admin/groups`}
+                  className="block p-2 rounded hover:bg-gray-200 text-gray-700"
+                >
+                  Groups
+                </Link>
+                <Link
+                  to={`/dashboard/academy/${currentAcademy.academyId}/admin/chapters`}
+                  className="block p-2 rounded hover:bg-gray-200 text-gray-700"
+                >
+                  Chapters
+                </Link>
+              </div>
+            </div>
           )}
         </nav>
       </aside>

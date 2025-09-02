@@ -22,6 +22,13 @@ import AcademyAdminDashboard from './pages/dashboard/academymanager/AcademyAdmin
 import ProfileSettings from './pages/dashboard/ProfileSettings.jsx'
 import AcademyDetails from './pages/dashboard/superadmin/AcademyDetails.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import ChaptersAdmin from './pages/dashboard/academymanager/ChaptersAdmin.jsx'
+import ModulesAdmin from './pages/dashboard/academymanager/ModulesAdmin.jsx'
+import CoursesAdmin from './pages/dashboard/academymanager/CoursesAdmin.jsx'
+import GroupsAdmin from './pages/dashboard/academymanager/GroupsAdmin.jsx'
+
+
+
 
 
 
@@ -97,6 +104,46 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: 'academy/:academyId/admin',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <AcademyAdminDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/chapters',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <ChaptersAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/modules',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <ModulesAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/courses',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <CoursesAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/groups',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <GroupsAdmin />
+          </ProtectedRoute>
+        ),
+      },
 
       { 
         path: 'academy/:academyId/teacher', 
@@ -114,7 +161,8 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      { path: 'academy/:academyId/admin', element: <AcademyAdminDashboard /> },
+      
+      
 
       { path: 'profile', element: <ProfileSettings /> },
     ]

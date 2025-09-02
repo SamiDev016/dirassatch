@@ -1,18 +1,35 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { getUserRoles } from "../utils/auth";
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const [allowed, setAllowed] = useState(null);
+  const { academyId } = useParams();
 
   useEffect(() => {
     const checkRoles = async () => {
-      const { globalRoles } = await getUserRoles();
-      const hasAccess = allowedRoles.some(role => globalRoles.includes(role));
-      setAllowed(hasAccess);
+      const { globalRoles, academies } = await getUserRoles();
+
+      if (allowedRoles.some(role => globalRoles.includes(role))) {
+        setAllowed(true);
+        return;
+      }
+
+      if (academyId) {
+        const academy = academies.find(
+          a => String(a.academyId) === String(academyId)
+        );
+        if (academy && allowedRoles.some(role => academy.roles.includes(role))) {
+          setAllowed(true);
+          return;
+        }
+      }
+
+      setAllowed(false);
     };
+
     checkRoles();
-  }, [allowedRoles]);
+  }, [allowedRoles, academyId]);
 
   if (allowed === null) {
     return <div className="p-6">Loading...</div>;

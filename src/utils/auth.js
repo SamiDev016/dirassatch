@@ -325,6 +325,7 @@ export async function createModule({name}){
         const response = await fetch(`${API_BASE}/modules/create`, {
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": `Bearer ${getToken()}`,
             },
             body: JSON.stringify({ name })
@@ -339,26 +340,29 @@ export async function createModule({name}){
 }
 
 
-export async function updateModule({id,name}){
+export async function updateModule({ id, name }) {
     const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
+      ? import.meta.env.VITE_API_URL
+      : "/api";
+  
     try {
-        const response = await fetch(`${API_BASE}/modules/${id}`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${getToken()}`,
-            },
-            body: JSON.stringify({ name })
-        });
-        if (!response.ok) throw new Error("Failed to update module");
-        const result = await response.json();
-        return result;
+      const response = await fetch(`${API_BASE}/modules/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ name }),
+      });
+  
+      if (!response.ok) throw new Error("Failed to update module");
+      return await response.json();
     } catch (error) {
-        console.error("Error updating module:", error);
-        return null;
+      console.error("Error updating module:", error);
+      return null;
     }
-}
+  }
+  
 
 
 export async function getModuleByID(id){
@@ -398,28 +402,43 @@ export async function getAllModules(){
         return null;
     }
 }
-
-//Chapters
-export async function createChapter({name,description,order,isPublished,courseId}){
+// Chapters
+export async function createChapter({ name, description, order, isPublished, courseId }) {
     const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
+        ? import.meta.env.VITE_API_URL
+        : "/api";
+
     try {
         const response = await fetch(`${API_BASE}/chapters`, {
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": `Bearer ${getToken()}`,
             },
-            body: JSON.stringify({ name,description,order,isPublished,courseId })
+            body: JSON.stringify({ name, description, order, isPublished, courseId }),
         });
-        if (!response.ok) throw new Error("Failed to create chapter");
+
+        // Debugging
+        console.log("Response status:", response.status);
+        console.log("Response headers:", [...response.headers.entries()]);
+
+        // Clone so we can read body twice (debug + actual)
+        const clone = response.clone();
+        const text = await clone.text();
+        console.log("Raw response body:", text);
+
+        if (!response.ok) throw new Error(`Failed to create chapter: ${response.status}`);
+
         const result = await response.json();
+        console.log("Parsed JSON result:", result);
+
         return result;
     } catch (error) {
         console.error("Error creating chapter:", error);
         return null;
     }
 }
+
 
 export async function getChaptersByCourse({id}){
     const API_BASE = import.meta.env.PROD
@@ -467,6 +486,7 @@ export async function updateChapter({id,name,description,order,isPublished,cours
         const response = await fetch(`${API_BASE}/chapters/${id}`, {
             method: "PUT",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": `Bearer ${getToken()}`,
             },
             body: JSON.stringify({ name,description,order,isPublished,courseId })
@@ -527,6 +547,7 @@ export async function createCourse({cover,academyId,moduleId,name,description,ta
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({ cover,academyId,moduleId,name,description,targetAudience,prerequisites,whatYouWillLearn,whatYouCanDoAfter,minAge,maxAge,price,chapters })
         });
@@ -577,3 +598,167 @@ export async function getCourseById({id}){
     }
 }
 
+//groups
+export async function getGroupsByAcademy({academyId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/academy/${academyId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch groups");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching groups:", error);
+        return null;
+    }
+}
+export async function createGroup({name,courseId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name,courseId })
+        });
+        if (!response.ok) throw new Error("Failed to create group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating group:", error);
+        return null;
+    }
+}
+
+export async function updateGroup({id,name,courseId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/${id}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name,courseId })
+        });
+        if (!response.ok) throw new Error("Failed to update group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating group:", error);
+        return null;
+    }
+}
+
+export async function deleteGroup({id}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to delete group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error deleting group:", error);
+        return null;
+    }
+}
+
+export async function getGroupByID({id}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching group:", error);
+        return null;
+    }
+}
+
+export async function addMemberToGroup({userId,groupId,role}){ //STUDENT
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/${groupId}/members`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId,role })
+        });
+        if (!response.ok) throw new Error("Failed to add user to group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error adding user to group:", error);
+        return null;
+    }
+}
+
+export async function getAllMembersOfGroup({groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/${groupId}/members`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch members of group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching members of group:", error);
+        return null;
+    }
+}
+    
+export async function removeMemberFromGroup({userId,groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/${groupId}/members/${userId}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to remove user from group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error removing user from group:", error);
+        return null;
+    }
+}
+    
