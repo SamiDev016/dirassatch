@@ -4,8 +4,9 @@ import {
   getChaptersByCourse,
   updateChapter,
   deleteChapter,
+  getCoursesByAcademy,
 } from "../../../utils/auth";
-import { getCoursesByAcademy } from "../../../utils/auth";
+import { BookOpen, Plus, Edit, Trash } from "lucide-react";
 
 export default function ChaptersAdmin() {
   const [academyId, setAcademyId] = useState(null);
@@ -82,54 +83,83 @@ export default function ChaptersAdmin() {
     fetchChapters(selectedCourse);
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Chapters Admin</h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <BookOpen className="w-6 h-6 text-blue-600" /> Chapters Management
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">
+          Create and manage chapters for courses in this academy.
+        </p>
+      </div>
 
       {/* Course Selector */}
-      <select
-        value={selectedCourse || ""}
-        onChange={(e) => {
-          setSelectedCourse(e.target.value);
-          fetchChapters(e.target.value);
-        }}
-        className="border rounded p-2 mb-4"
-      >
-        <option value="">Select a Course</option>
-        {courses.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
+          Select Course
+        </label>
+        <select
+          value={selectedCourse || ""}
+          onChange={(e) => {
+            setSelectedCourse(e.target.value);
+            fetchChapters(e.target.value);
+          }}
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="">-- Choose a course --</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Chapters List */}
       {selectedCourse && (
-        <div>
-          <button
-            onClick={() => setIsDialogOpen(true)}
-            className="mb-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-          >
-            + Add Chapter
-          </button>
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-slate-800">Chapters</h2>
+            <button
+              onClick={() => {
+                setFormData({ id: null, name: "", description: "", order: 1, isPublished: false });
+                setIsDialogOpen(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+            >
+              <Plus className="w-4 h-4" /> Add Chapter
+            </button>
+          </div>
 
           {chapters.length === 0 ? (
-            <p className="text-gray-500">No chapters found.</p>
+            <p className="text-slate-500 text-sm">No chapters found for this course.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="divide-y divide-slate-200">
               {chapters.map((ch) => (
                 <li
                   key={ch.id}
-                  className="border p-3 rounded flex justify-between items-center"
+                  className="py-4 flex justify-between items-start"
                 >
                   <div>
-                    <h3 className="font-semibold">{ch.name}</h3>
-                    <p className="text-sm text-gray-600">{ch.description}</p>
-                    <p className="text-xs text-gray-400">
+                    <h3 className="font-semibold text-slate-900">{ch.name}</h3>
+                    <p className="text-sm text-slate-600">{ch.description}</p>
+                    <p className="text-xs text-slate-500 mt-1">
                       Order: {ch.order} |{" "}
-                      {ch.isPublished ? "✅ Published" : "❌ Draft"}
+                      {ch.isPublished ? (
+                        <span className="text-green-600 font-medium">Published</span>
+                      ) : (
+                        <span className="text-red-500 font-medium">Draft</span>
+                      )}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -138,15 +168,15 @@ export default function ChaptersAdmin() {
                         setFormData(ch);
                         setIsDialogOpen(true);
                       }}
-                      className="px-3 py-1 bg-blue-500 text-white rounded"
+                      className="flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 text-blue-600 text-sm"
                     >
-                      Edit
+                      <Edit className="w-4 h-4" /> Edit
                     </button>
                     <button
                       onClick={() => handleDelete(ch.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded"
+                      className="flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 hover:bg-red-50 text-red-600 text-sm"
                     >
-                      Delete
+                      <Trash className="w-4 h-4" /> Delete
                     </button>
                   </div>
                 </li>
@@ -159,55 +189,58 @@ export default function ChaptersAdmin() {
       {/* Modal */}
       {isDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6">
-            <h2 className="text-xl font-bold mb-4">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-slate-900">
               {formData.id ? "Edit Chapter" : "New Chapter"}
             </h2>
-            <input
-              type="text"
-              placeholder="Chapter Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="border rounded p-2 w-full mb-2"
-            />
-            <textarea
-              placeholder="Description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="border rounded p-2 w-full mb-2"
-            />
-            <input
-              type="number"
-              placeholder="Order"
-              value={formData.order}
-              onChange={(e) =>
-                setFormData({ ...formData, order: parseInt(e.target.value) })
-              }
-              className="border rounded p-2 w-full mb-2"
-            />
-            <label className="flex items-center gap-2 mb-2">
+            <div className="space-y-3">
               <input
-                type="checkbox"
-                checked={formData.isPublished}
-                onChange={(e) =>
-                  setFormData({ ...formData, isPublished: e.target.checked })
-                }
+                type="text"
+                placeholder="Chapter Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              Published
-            </label>
+              <textarea
+                placeholder="Description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <input
+                type="number"
+                placeholder="Order"
+                value={formData.order}
+                onChange={(e) =>
+                  setFormData({ ...formData, order: parseInt(e.target.value) })
+                }
+                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={formData.isPublished}
+                  onChange={(e) =>
+                    setFormData({ ...formData, isPublished: e.target.checked })
+                  }
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                Published
+              </label>
+            </div>
 
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={() => setIsDialogOpen(false)}
-                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium"
               >
                 Save
               </button>

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import { setToken, setIsSuperAdmin, resolveDashboardRoute } from "../utils/auth"
+import { setToken, setIsSuperAdmin, resolveDashboardRoute,getUserRoles } from "../utils/auth"
 
 const Login = () => {
     const [form, setForm] = useState({email: "",password: ""});
@@ -21,28 +21,37 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE}/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(form)
-            });
-            if (!response.ok) {
-                throw new Error("Failed to login");
-            }
-            const data = await response.json();
-            setToken(data.accessToken);
-            setIsSuperAdmin(data.isSuperAdmin);
-            
-            const route = await resolveDashboardRoute();
-            navigate(route);
-        } catch (error) {
-            setError(error.message);
+          const response = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+          });
+      
+          if (!response.ok) throw new Error("Failed to login");
+      
+          const data = await response.json();
+          setToken(data.accessToken);
+          setIsSuperAdmin(data.isSuperAdmin);
+      
+          // Fetch user roles after login
+          const { academies, globalRoles } = await getUserRoles();
+      
+          // Handle selectedAcademyId automatically
+          if (academies.length === 1) {
+            localStorage.setItem("selectedAcademyId", academies[0].academyId);
+          }
+      
+          const route = await resolveDashboardRoute(
+            academies.length === 1 ? academies[0].academyId : null
+          );
+          navigate(route);
+        } catch (err) {
+          setError(err.message);
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
+      
     return (
         <div>
             <Header />

@@ -88,6 +88,7 @@ export const getUserByEmail = async (email) => {
         return null;
     }
 };
+
 export const updateUserProfile = async (id, firstName, lastName, phone, profilePhoto) => {
     const API_BASE = import.meta.env.PROD
         ? import.meta.env.VITE_API_URL
@@ -140,6 +141,7 @@ export const isLoggedIn = () => {
 
 export const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("selectedAcademyId");
 };
 
 
@@ -558,28 +560,81 @@ export async function getAllCourses(){
     }
 }
 
-
-export async function createCourse({cover,academyId,moduleId,name,description,targetAudience,prerequisites,whatYouWillLearn,whatYouCanDoAfter,minAge,maxAge,price,chapters}){
+export async function createCourse({
+    cover,
+    academyId,
+    moduleId,
+    name,
+    description,
+    targetAudience,
+    prerequisites,
+    whatYouWillLearn,
+    whatYouCanDoAfter,
+    minAge,
+    maxAge,
+    price,
+    chapters,
+  }) {
     const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
+      ? import.meta.env.VITE_API_URL
+      : "/api";
+  
     try {
-        const response = await fetch(`${API_BASE}/course/create`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${getToken()}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ cover,academyId,moduleId,name,description,targetAudience,prerequisites,whatYouWillLearn,whatYouCanDoAfter,minAge,maxAge,price,chapters })
-        });
-        if (!response.ok) throw new Error("Failed to create course");
-        const result = await response.json();
-        return result;
+      // Debug: log the payload before sending
+      const payload = {
+        cover,
+        academyId,
+        moduleId,
+        name,
+        description,
+        targetAudience,
+        prerequisites,
+        whatYouWillLearn,
+        whatYouCanDoAfter,
+        minAge,
+        maxAge,
+        price,
+        chapters,
+      };
+      console.log("🚀 createCourse payload:", payload);
+  
+      const response = await fetch(`${API_BASE}/course/create`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      // Debug: log the raw response
+      console.log("🚀 createCourse raw response:", response);
+  
+      const resultText = await response.text(); // get raw text first
+      console.log("🚀 createCourse response text:", resultText);
+  
+      // Try parsing JSON
+      let result;
+      try {
+        result = JSON.parse(resultText);
+      } catch (parseError) {
+        console.warn("⚠️ Failed to parse JSON response:", parseError);
+        result = resultText; // fallback to raw text
+      }
+  
+      if (!response.ok) {
+        throw new Error(
+          `Failed to create course. Status: ${response.status}, Response: ${resultText}`
+        );
+      }
+  
+      return result;
     } catch (error) {
-        console.error("Error creating course:", error);
-        return null;
+      console.error("❌ Error creating course:", error);
+      return null;
     }
-}
+  }
+  
 
 export async function getCoursesByAcademy({academyId}){
     const API_BASE = import.meta.env.PROD

@@ -27,6 +27,8 @@ import ModulesAdmin from './pages/dashboard/academymanager/ModulesAdmin.jsx'
 import CoursesAdmin from './pages/dashboard/academymanager/CoursesAdmin.jsx'
 import GroupsAdmin from './pages/dashboard/academymanager/GroupsAdmin.jsx'
 import ProfileAdminDashboard from './pages/dashboard/academymanager/ProfileAdminDashboard.jsx'
+import ManageAcademies from './pages/dashboard/superadmin/ManageAcademies.jsx'
+
 
 
 
@@ -102,6 +104,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["superAdmin"]}>
             <AcademyDetails />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'super-admin/academies',
+        element: (
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <ManageAcademies />
           </ProtectedRoute>
         ),
       },
