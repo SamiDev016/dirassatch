@@ -4,7 +4,7 @@ import {
   createCourse,
   getAllModules,
 } from "../../../utils/auth";
-import { PlusCircle, BookOpen, Users, DollarSign, Trash2, X } from "lucide-react";
+import { PlusCircle, BookOpen, Users, DollarSign, Trash2, X, Search, Filter, Clock, GraduationCap, Tag } from "lucide-react";
 
 export default function CoursesAdmin() {
   const [academyId, setAcademyId] = useState(null);
@@ -28,6 +28,7 @@ export default function CoursesAdmin() {
   });
 
   const [chapters, setChapters] = useState([{ title: "", content: "" }]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const stored = localStorage.getItem("selectedAcademyId");
@@ -117,38 +118,99 @@ export default function CoursesAdmin() {
     }
   };
 
+  // Filter courses based on search term
+  const filteredCourses = courses.filter(course => 
+    course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    course.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Courses Admin</h1>
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <BookOpen className="h-6 w-6 text-blue-600" /> 
+            Courses Management
+          </h1>
+          <p className="text-gray-500 mt-1">Create and manage courses for your academy</p>
+        </div>
         <button
           onClick={() => setIsDialogOpen(true)}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow transform hover:scale-105"
         >
-          <PlusCircle size={18} /> New Course
+          <PlusCircle className="h-5 w-5" />
+          New Course
         </button>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="bg-white shadow-sm rounded-2xl p-4 border border-gray-200">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search courses..."
+              className="pl-10 w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-700">Filter</span>
+            </button>
+            <select className="border border-gray-300 rounded-xl px-4 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition">
+              <option value="">All Modules</option>
+              {modules.map(module => (
+                <option key={module.id} value={module.id}>{module.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Courses Grid */}
       {loading ? (
-        <p className="text-gray-600">Loading courses...</p>
-      ) : courses.length === 0 ? (
-        <p className="text-gray-500">No courses found.</p>
+        <div className="text-center py-10">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading courses...</p>
+        </div>
+      ) : filteredCourses.length === 0 ? (
+        <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-200">
+          <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-700 font-medium">No courses found</p>
+          <p className="text-gray-500 text-sm mt-1">{searchTerm ? "Try a different search term" : "Create your first course using the button above"}</p>
+        </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
+          {filteredCourses.map((course) => (
             <div
               key={course.id}
-              className="rounded-2xl overflow-hidden shadow-md border bg-white flex flex-col transform transition-all hover:scale-[1.02] hover:shadow-xl"
+              className="rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-white flex flex-col transform transition-all hover:shadow-xl hover:border-blue-200 duration-300"
             >
-              {course.cover && (
-                <img
-                  src={course.cover}
-                  alt={course.name}
-                  className="w-full h-40 object-cover"
-                />
-              )}
+              <div className="relative">
+                {course.cover ? (
+                  <img
+                    src={course.cover}
+                    alt={course.name}
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center">
+                    <BookOpen className="h-12 w-12 text-blue-500" />
+                  </div>
+                )}
+                {course.moduleId && modules.find(m => m.id === course.moduleId) && (
+                   <div className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                     <Tag className="h-3 w-3" />
+                     {modules.find(m => m.id === course.moduleId)?.name}
+                   </div>
+                )}
+              </div>
               <div className="p-4 flex flex-col flex-1">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   <BookOpen size={18} /> {course.name}
