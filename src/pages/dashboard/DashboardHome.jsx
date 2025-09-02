@@ -8,12 +8,6 @@ export default function DashboardHome() {
     const [academies, setAcademies] = useState([]);
     const [loading, setLoading] = useState(true);
 
-
-    const userRoles = getUserRoles();
-    console.log("user",userRoles.user);
-    console.log("academies",userRoles.academies);
-
-
     useEffect(() => {
         const resolve = async () => {
             const { academies, globalRoles } = await getUserRoles();
@@ -27,8 +21,6 @@ export default function DashboardHome() {
 
             if (academies.length === 1) {
                 const route = await resolveDashboardRoute(academies[0].academyId);
-                console.log("academies",academies[0].academyId);
-                
                 localStorage.setItem("selectedAcademyId", academies[0].academyId);
                 setRedirectTo(route);
                 setLoading(false);
@@ -41,7 +33,6 @@ export default function DashboardHome() {
                 return;
             }
 
-            // Fallback: no academies
             setRedirectTo("/dashboard");
             setLoading(false);
         };

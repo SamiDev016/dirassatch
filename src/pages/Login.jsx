@@ -33,18 +33,13 @@ const Login = () => {
           setToken(data.accessToken);
           setIsSuperAdmin(data.isSuperAdmin);
       
-          // Fetch user roles after login
-          const { academies, globalRoles } = await getUserRoles();
+          const { academies } = await getUserRoles();
       
-          // Handle selectedAcademyId automatically
           if (academies.length === 1) {
             localStorage.setItem("selectedAcademyId", academies[0].academyId);
           }
       
-          const route = await resolveDashboardRoute(
-            academies.length === 1 ? academies[0].academyId : null
-          );
-          navigate(route);
+          navigate("/dashboard");
         } catch (err) {
           setError(err.message);
         } finally {

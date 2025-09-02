@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, Link, useParams, useLocation } from "react-router-dom";
+import { Outlet, Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { 
   Home, 
   Shield, 
@@ -12,7 +12,7 @@ import {
   User,
 } from "lucide-react";
 import { getUserRoles, getUserData, logout } from "../../../utils/auth";
-import { useRef, useNavigate } from "react";
+import { useRef } from "react";
 
 export default function DashboardLayout() {
   const [roles, setRoles] = useState({ globalRoles: [], academies: [] });
@@ -23,13 +23,14 @@ export default function DashboardLayout() {
   const { academyId } = useParams();
   const location = useLocation();
   const [loggingOut, setLoggingOut] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     setLoggingOut(true);
     setTimeout(() => {
         logout();
         setLoggingOut(false);
-        navigate("/login");
+        navigate("/");
     }, 1000); 
 };
 
