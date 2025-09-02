@@ -85,15 +85,15 @@ const App = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header/>
-      <Outlet context={{
-        search,
-        setSearch,
-        academies,
-        errorMessage,
-        isLoading,
-        posts,
-        courses
-      }} />
+        <Outlet context={{
+          search,
+          setSearch,
+          academies,
+          errorMessage,
+          isLoading,
+          posts,
+          courses
+        }} />
       <Footer />
     </div>
   );

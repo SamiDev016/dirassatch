@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
   }, [allowedRoles]);
 
   if (allowed === null) {
-    return <div className="p-6">⏳</div>;
+    return <div className="p-6">Loading...</div>;
   }
 
   if (!allowed) {

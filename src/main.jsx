@@ -18,7 +18,7 @@ import DashboardHome from './pages/dashboard/DashboardHome.jsx'
 import SuperAdminDashboard from './pages/dashboard/superadmin/SuperAdminDashboard.jsx'
 import TeacherDashboard from './pages/dashboard/TeacherDashboard.jsx'
 import StudentDashboard from './pages/dashboard/StudentDashboard.jsx'
-import AcademyAdminDashboard from './pages/dashboard/AcademyAdminDashboard.jsx'
+import AcademyAdminDashboard from './pages/dashboard/academymanager/AcademyAdminDashboard.jsx'
 import ProfileSettings from './pages/dashboard/ProfileSettings.jsx'
 import AcademyDetails from './pages/dashboard/superadmin/AcademyDetails.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
@@ -98,8 +98,22 @@ const router = createBrowserRouter([
         ),
       },
 
-      { path: 'academy/:academyId/teacher', element: <TeacherDashboard /> },
-      { path: 'academy/:academyId/student', element: <StudentDashboard /> },
+      { 
+        path: 'academy/:academyId/teacher', 
+        element: (
+          <ProtectedRoute allowedRoles={["teacher"]}>
+            <TeacherDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      { 
+        path: 'academy/:academyId/student', 
+        element: (
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        ),
+      },
       { path: 'academy/:academyId/admin', element: <AcademyAdminDashboard /> },
 
       { path: 'profile', element: <ProfileSettings /> },

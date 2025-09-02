@@ -61,9 +61,7 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 p-6">
-      <h1 className="text-3xl font-bold text-gray-800">⚡ Super Admin Dashboard</h1>
-
-      {/* Create Academy Form */}
+      <h1 className="text-3xl font-bold text-gray-800">Super Admin Dashboard</h1>
       <div className="bg-white shadow-lg rounded-2xl p-6">
         <h2 className="text-xl font-semibold mb-4">Create New Academy</h2>
         <form
@@ -109,11 +107,10 @@ export default function SuperAdminDashboard() {
         </form>
       </div>
 
-      {/* Academy Cards */}
       <div className="bg-white shadow-lg rounded-2xl p-6">
         <h2 className="text-xl font-semibold mb-4">All Academies</h2>
         {loading ? (
-          <p className="text-gray-500">⏳ Loading academies...</p>
+          <p className="text-gray-500">Loading academies...</p>
         ) : academies.length === 0 ? (
           <p className="text-gray-600">No academies found.</p>
         ) : (

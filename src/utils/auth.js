@@ -233,11 +233,6 @@ export const getUserAcademyRoles = async (userId) => {
 
         if (!response.ok) throw new Error("Failed to fetch user academy roles");
 
-        // Expected example response:
-        // [
-        //   { academyId: 1, academyName: "Optilens", roles: ["manager"] },
-        //   { academyId: 2, academyName: "Wedad", roles: ["manager"] }
-        // ]
         return await response.json();
     } catch (error) {
         console.error("Error fetching user academy roles:", error);
@@ -288,7 +283,7 @@ export const getUserRoles = async () => {
 };
 
 
-export const resolveDashboardRoute = async () => {
+export const resolveDashboardRoute = async (choosenAcademyId) => {
     const { globalRoles, academies } = await getUserRoles();
 
     if (globalRoles.includes("superAdmin")) {
@@ -298,7 +293,7 @@ export const resolveDashboardRoute = async () => {
     if (academies.length === 1) {
         const academy = academies[0];
 
-        if (academy.roles.includes("owner")) {
+        if (academy.roles.includes("manager")) {
             const route = `/dashboard/academy/${academy.academyId}/admin`;
             return route;
         }
@@ -308,8 +303,277 @@ export const resolveDashboardRoute = async () => {
     }
 
     if (academies.length > 1) {
-        return "/dashboard";
+        const academy = academies.find(a => a.academyId === choosenAcademyId);
+        if (academy.roles.includes("manager")) {
+            const route = `/dashboard/academy/${academy.academyId}/admin`;
+            return route;
+        }
+        const route = `/dashboard/academy/${academy.academyId}/admin`;
+        return route;
     }
+
     return "/dashboard";
 };
+
+//Modules
+
+export async function createModule({name}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/modules/create`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({ name })
+        });
+        if (!response.ok) throw new Error("Failed to create module");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating module:", error);
+        return null;
+    }
+}
+
+
+export async function updateModule({id,name}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/modules/${id}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({ name })
+        });
+        if (!response.ok) throw new Error("Failed to update module");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating module:", error);
+        return null;
+    }
+}
+
+
+export async function getModuleByID(id){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/modules/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to get module by ID");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error getting module by ID:", error);
+        return null;
+    }
+}
+
+export async function getAllModules(){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/modules/all`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to get all modules");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error getting all modules:", error);
+        return null;
+    }
+}
+
+//Chapters
+export async function createChapter({name,description,order,isPublished,courseId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/chapters`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({ name,description,order,isPublished,courseId })
+        });
+        if (!response.ok) throw new Error("Failed to create chapter");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating chapter:", error);
+        return null;
+    }
+}
+
+export async function getChaptersByCourse({id}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/chapters/course/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to get chapters by course");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error getting chapters by course:", error);
+        return null;
+    }
+}
+
+export async function getChapterById({id}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/chapters/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to get chapter by ID");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error getting chapter by ID:", error);
+        return null;
+    }
+}
+
+export async function updateChapter({id,name,description,order,isPublished,courseId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/chapters/${id}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({ name,description,order,isPublished,courseId })
+        });
+        if (!response.ok) throw new Error("Failed to update chapter");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating chapter:", error);
+        return null;
+    }
+}
+
+export async function deleteChapter({id}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/chapters/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to delete chapter");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error deleting chapter:", error);
+        return null;
+    }
+}
+
+//Courses
+export async function getAllCourses(){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/course/all`, {
+        });
+        if (!response.ok) throw new Error("Failed to fetch courses");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching courses:", error);
+        return null;
+    }
+}
+
+
+export async function createCourse({cover,academyId,moduleId,name,description,targetAudience,prerequisites,whatYouWillLearn,whatYouCanDoAfter,minAge,maxAge,price,chapters}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/course/create`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({ cover,academyId,moduleId,name,description,targetAudience,prerequisites,whatYouWillLearn,whatYouCanDoAfter,minAge,maxAge,price,chapters })
+        });
+        if (!response.ok) throw new Error("Failed to create course");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating course:", error);
+        return null;
+    }
+}
+
+export async function getCoursesByAcademy({academyId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/course/academy/${academyId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch courses");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching courses:", error);
+        return null;
+    }
+}
+    
+export async function getCourseById({id}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/course/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch course");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching course:", error);
+        return null;
+    }
+}
 
