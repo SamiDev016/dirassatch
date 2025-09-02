@@ -47,12 +47,7 @@ export default function DashboardLayout() {
           >
             Home
           </Link>
-          <Link
-            to="/dashboard/profile"
-            className="block p-2 rounded cursor-pointer hover:bg-gray-200 text-gray-700"
-          >
-            Profile
-          </Link>
+          
 
           {/* Super Admin Links */}
           {isSuperAdmin && (
@@ -97,6 +92,12 @@ export default function DashboardLayout() {
                   className="block p-2 rounded hover:bg-gray-200 text-gray-700"
                 >
                   Chapters
+                </Link>
+                <Link
+                  to={`/dashboard/academy/${currentAcademy.academyId}/admin/settings`}
+                  className="block p-2 rounded hover:bg-gray-200 text-gray-700"
+                >
+                  Settings
                 </Link>
               </div>
             </div>

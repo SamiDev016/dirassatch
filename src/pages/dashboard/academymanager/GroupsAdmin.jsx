@@ -25,7 +25,7 @@ export default function GroupsAdmin() {
 useEffect(() => {
     const stored = localStorage.getItem("selectedAcademyId");
     if (stored) {
-      setAcademyId(Number(stored)); // make sure it's a number
+      setAcademyId(Number(stored)); 
     }
   }, []);
   

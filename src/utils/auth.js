@@ -88,28 +88,49 @@ export const getUserByEmail = async (email) => {
         return null;
     }
 };
-
-export const updateUserProfile = async (id, data) => {
+export const updateUserProfile = async (id, firstName, lastName, phone, profilePhoto) => {
     const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
+        ? import.meta.env.VITE_API_URL
+        : "/api";
+
+    const url = `${API_BASE}/user/edit-profile/${id}`;
+    const payload = { id, firstName, lastName, phone, profilePhoto };
+
+    console.log("🔵 [updateUserProfile] URL:", url);
+    console.log("🔵 [updateUserProfile] Payload:", payload);
+    console.log("🔵 [updateUserProfile] Token:", getToken());
+
     try {
-        const response = await fetch(`${API_BASE}/user/edit-profile/${id}`, {
+        const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${getToken()}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
-        if (!response.ok) throw new Error("Failed to update user profile");
-        const data = await response.json();
+
+        console.log("🟡 [updateUserProfile] Response Status:", response.status);
+
+        // Try to parse response text even if not ok
+        const responseText = await response.text();
+        console.log("🟡 [updateUserProfile] Raw Response Text:", responseText);
+
+        if (!response.ok) {
+            throw new Error(`Failed to update user profile. Status: ${response.status}`);
+        }
+
+        // Try parsing JSON after checking
+        const data = JSON.parse(responseText);
+        console.log("🟢 [updateUserProfile] Parsed Response Data:", data);
+
         return data;
     } catch (error) {
-        console.error("Error updating user profile:", error);
+        console.error("🔴 [updateUserProfile] Error:", error);
         return null;
     }
 };
+
 
 export const isLoggedIn = () => {
     const token = getToken();
@@ -205,7 +226,7 @@ export const addOwnerToAcademy = async (academyId, userId) => {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${getToken()}`
         },
-        body: JSON.stringify({ userId }) // ✅ pass userId, not email
+        body: JSON.stringify({ userId }) 
       });
   
       if (!response.ok) throw new Error("Failed to add owner");
