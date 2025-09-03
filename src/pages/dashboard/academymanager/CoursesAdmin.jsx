@@ -234,7 +234,7 @@ export default function CoursesAdmin() {
 
       {/* Dialog / Modal */}
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-0 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center p-4  bg-opacity-50 ${
           isDialogOpen
             ? "opacity-100 bg-opacity-40 transition-opacity duration-300"
             : "opacity-0 pointer-events-none"

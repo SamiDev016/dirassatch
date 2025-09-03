@@ -78,9 +78,9 @@ export default function AcademyDetails() {
   };
   
 
-  if (loading) return <div className="p-6 text-center py-10">⏳ Loading academy...</div>;
+  if (loading) return <div className="p-6 text-center py-10">Loading academy...</div>;
   if (error) return <div className="p-6 text-center py-10 text-red-500">{error}</div>;
-  if (!academy) return <div className="p-6 text-center py-10">❌ Academy not found</div>;
+  if (!academy) return <div className="p-6 text-center py-10">Academy not found</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
@@ -97,14 +97,14 @@ export default function AcademyDetails() {
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
             </svg>
-            {academy.phone || "N/A"}
+            {academy.phone || ""}
           </p>
           <p className="text-gray-600 flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
               <polyline points="22,6 12,13 2,6"></polyline>
             </svg>
-            {academy.email || "N/A"}
+            {academy.email || ""}
           </p>
         </div>
       </div>
@@ -126,14 +126,6 @@ export default function AcademyDetails() {
               </svg>
             </div>
           </div>
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <span className="text-xs font-medium text-green-500">15% increase</span>
-            <span className="text-xs text-gray-500 ml-1">from last month</span>
-          </div>
         </div>
         
         <div className="p-6 rounded-2xl shadow-sm bg-green-50 border border-gray-100">
@@ -148,14 +140,6 @@ export default function AcademyDetails() {
                 <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
               </svg>
             </div>
-          </div>
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <span className="text-xs font-medium text-green-500">8% increase</span>
-            <span className="text-xs text-gray-500 ml-1">from last month</span>
           </div>
         </div>
         
@@ -172,14 +156,6 @@ export default function AcademyDetails() {
               </svg>
             </div>
           </div>
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <span className="text-xs font-medium text-green-500">12% increase</span>
-            <span className="text-xs text-gray-500 ml-1">from last month</span>
-          </div>
         </div>
         
         <div className="p-6 rounded-2xl shadow-sm bg-amber-50 border border-gray-100">
@@ -194,14 +170,6 @@ export default function AcademyDetails() {
                 <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
               </svg>
             </div>
-          </div>
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <span className="text-xs font-medium text-green-500">5% increase</span>
-            <span className="text-xs text-gray-500 ml-1">from last month</span>
           </div>
         </div>
         
@@ -218,14 +186,6 @@ export default function AcademyDetails() {
               </svg>
             </div>
           </div>
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <span className="text-xs font-medium text-green-500">3% increase</span>
-            <span className="text-xs text-gray-500 ml-1">from last month</span>
-          </div>
         </div>
         
         <div className="p-6 rounded-2xl shadow-sm bg-indigo-50 border border-gray-100">
@@ -240,14 +200,6 @@ export default function AcademyDetails() {
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
               </svg>
             </div>
-          </div>
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <span className="text-xs font-medium text-green-500">10% increase</span>
-            <span className="text-xs text-gray-500 ml-1">from last month</span>
           </div>
         </div>
       </div>
@@ -265,7 +217,7 @@ export default function AcademyDetails() {
             {owners.map((owner) => (
               <div key={owner.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                  {owner.name.charAt(0).toUpperCase()}
+                {owner?.name ? owner.name.charAt(0).toUpperCase() : "?"}
                 </div>
                 <div>
                   <p className="font-medium text-gray-800">{owner.name}</p>

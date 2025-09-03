@@ -30,7 +30,7 @@ export default function DashboardLayout() {
     setTimeout(() => {
         logout();
         setLoggingOut(false);
-        navigate("/");
+        navigate("/login");
     }, 1000); 
 };
 
@@ -88,9 +88,9 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="w-full flex min-h-screen bg-slate-50">
       {/* Sidebar */}
-      <aside className="w-80 bg-white shadow-xl border-r border-slate-200 flex flex-col">
+      <aside className="w-1/5 bg-white shadow-xl border-r border-slate-200 flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">

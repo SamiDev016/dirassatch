@@ -316,7 +316,7 @@ export const resolveDashboardRoute = async (choosenAcademyId) => {
     if (academies.length === 1) {
         const academy = academies[0];
 
-        if (academy.roles.includes("manager")) {
+        if (academy.roles.includes("manager") || academy.roles.includes("owner")) {
             const route = `/dashboard/academy/${academy.academyId}/admin`;
             return route;
         }
@@ -327,11 +327,11 @@ export const resolveDashboardRoute = async (choosenAcademyId) => {
 
     if (academies.length > 1) {
         const academy = academies.find(a => a.academyId === choosenAcademyId);
-        if (academy.roles.includes("manager")) {
+        if (academy.roles.includes("manager") || academy.roles.includes("owner")) {
             const route = `/dashboard/academy/${academy.academyId}/admin`;
             return route;
         }
-        const route = `/dashboard/academy/${academy.academyId}/admin`;
+        const route = `/dashboard/academy/${academy.academyId}`;
         return route;
     }
 
@@ -776,7 +776,7 @@ export async function getGroupByID({id}){
     }
 }
 
-export async function addMemberToGroup({userId,groupId,role}){ //STUDENT
+export async function addMemberToGroup({userId,groupId,role}){ //STUDENT or TEACHER
     const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
     : "/api";
@@ -797,6 +797,10 @@ export async function addMemberToGroup({userId,groupId,role}){ //STUDENT
         return null;
     }
 }
+
+export async function getTotalMemebersByAcademy({$academyId,$role}){}
+
+
 
 export async function getAllMembersOfGroup({groupId}){
     const API_BASE = import.meta.env.PROD

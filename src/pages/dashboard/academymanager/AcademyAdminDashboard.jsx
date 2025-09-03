@@ -1,6 +1,7 @@
 
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getUserData, getCoursesByAcademy, getGroupsByAcademy } from '../../../utils/auth';
 import { BookOpen, Users, Layers, Settings, GraduationCap, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -56,7 +57,7 @@ export default function AcademyAdminDashboard() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 p-6">
+        <div className="max-w-4xl mx-auto space-y-8 p-6">
             {/* Dashboard Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -66,13 +67,12 @@ export default function AcademyAdminDashboard() {
                     <p className="text-gray-600">Manage your academy's courses, groups, and settings</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 shadow-sm transition flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>Schedule</span>
-                    </button>
+                    
                     <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl text-white font-medium hover:from-blue-700 hover:to-indigo-700 shadow-md transition flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        <span>Settings</span>
+                        <Link to={`/dashboard/academy/${academyId}/admin/settings`}>
+                            <Settings className="w-4 h-4" />
+                            <span>Settings</span>
+                        </Link>
                     </button>
                 </div>
             </div>
@@ -216,20 +216,6 @@ function StatCard({ title, value, icon: Icon, trend, trendValue, bgColor = 'bg-b
                     <Icon className="w-5 h-5" />
                 </div>
             </div>
-            
-            {trendValue && (
-                <div className="flex items-center">
-                    {isTrendUp ? (
-                        <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                    ) : (
-                        <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
-                    )}
-                    <span className={`text-xs font-medium ${isTrendUp ? 'text-green-500' : 'text-red-500'}`}>
-                        {trendValue}% {isTrendUp ? 'increase' : 'decrease'}
-                    </span>
-                    <span className="text-xs text-gray-500 ml-1">from last month</span>
-                </div>
-            )}
         </div>
     );
 }

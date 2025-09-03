@@ -26,9 +26,9 @@ export default function ManageAcademies() {
           
           // Set fake statistics data based on number of academies
           setStats({
-            totalStudents: data.length * 45 + 230,
-            totalTeachers: data.length * 8 + 25,
-            totalCourses: data.length * 12 + 40,
+            totalStudents: 0,
+            totalTeachers: 0,
+            totalCourses: 0,
             activeAcademies: Math.max(Math.floor(data.length * 0.8), 0)
           });
         }
@@ -94,21 +94,13 @@ export default function ManageAcademies() {
                 </svg>
               </div>
             </div>
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                <polyline points="17 6 23 6 23 12"/>
-              </svg>
-              <span className="text-xs font-medium text-green-500">12% increase</span>
-              <span className="text-xs text-gray-500 ml-1">from last month</span>
-            </div>
           </div>
           
           <div className="p-6 rounded-2xl shadow-sm bg-green-50 border border-gray-100">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-gray-500 mb-1">Active Academies</h3>
-                <p className="text-2xl font-bold text-gray-800">{stats.activeAcademies}</p>
+                <p className="text-2xl font-bold text-gray-800">{academies.length}</p>
               </div>
               <div className="p-3 rounded-full text-green-500 bg-white/80 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -117,21 +109,13 @@ export default function ManageAcademies() {
                 </svg>
               </div>
             </div>
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                <polyline points="17 6 23 6 23 12"/>
-              </svg>
-              <span className="text-xs font-medium text-green-500">8% increase</span>
-              <span className="text-xs text-gray-500 ml-1">from last month</span>
-            </div>
           </div>
           
           <div className="p-6 rounded-2xl shadow-sm bg-purple-50 border border-gray-100">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-gray-500 mb-1">Total Students</h3>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalStudents.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-800">0</p>
               </div>
               <div className="p-3 rounded-full text-purple-500 bg-white/80 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -142,21 +126,13 @@ export default function ManageAcademies() {
                 </svg>
               </div>
             </div>
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                <polyline points="17 6 23 6 23 12"/>
-              </svg>
-              <span className="text-xs font-medium text-green-500">15% increase</span>
-              <span className="text-xs text-gray-500 ml-1">from last month</span>
-            </div>
           </div>
           
           <div className="p-6 rounded-2xl shadow-sm bg-amber-50 border border-gray-100">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-gray-500 mb-1">Total Teachers</h3>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalTeachers}</p>
+                <p className="text-2xl font-bold text-gray-800">0</p>
               </div>
               <div className="p-3 rounded-full text-amber-500 bg-white/80 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -164,14 +140,6 @@ export default function ManageAcademies() {
                   <path d="M6 12v5c3 3 9 3 12 0v-5"/>
                 </svg>
               </div>
-            </div>
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-green-500 mr-1">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                <polyline points="17 6 23 6 23 12"/>
-              </svg>
-              <span className="text-xs font-medium text-green-500">5% increase</span>
-              <span className="text-xs text-gray-500 ml-1">from last month</span>
             </div>
           </div>
         </div>

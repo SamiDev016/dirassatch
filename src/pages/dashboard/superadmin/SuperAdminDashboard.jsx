@@ -16,15 +16,13 @@ export default function SuperAdminDashboard() {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                // Fetch real academies count
                 const academies = await getAllAcademies();
                 
-                // Set stats with real academy count and fake data for other metrics
                 setStats({
                     academies: academies?.length || 0,
                     revenue: 125000,
-                    totalStudents: 1250,
-                    totalTeachers: 85
+                    totalStudents:0,
+                    totalTeachers: 0
                 });
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
@@ -44,40 +42,25 @@ export default function SuperAdminDashboard() {
                 <div className="text-center py-10">Loading statistics...</div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <StatCard 
                             title="Total Academies" 
                             value={stats.academies} 
-                            icon={School} 
-                            trend="up" 
-                            trendValue={12} 
+                            icon={School}
                             bgColor="bg-blue-50" 
                             iconColor="text-blue-500" 
                         />
                         <StatCard 
-                            title="Total Revenue" 
-                            value={`$${stats.revenue.toLocaleString()}`} 
-                            icon={DollarSign} 
-                            trend="up" 
-                            trendValue={8} 
-                            bgColor="bg-green-50" 
-                            iconColor="text-green-500" 
-                        />
-                        <StatCard 
                             title="Total Students" 
-                            value={stats.totalStudents.toLocaleString()} 
-                            icon={Users} 
-                            trend="up" 
-                            trendValue={15} 
+                            value={stats.totalStudents.toString()} 
+                            icon={Users}
                             bgColor="bg-purple-50" 
                             iconColor="text-purple-500" 
                         />
                         <StatCard 
                             title="Total Teachers" 
                             value={stats.totalTeachers} 
-                            icon={GraduationCap} 
-                            trend="up" 
-                            trendValue={5} 
+                            icon={GraduationCap}
                             bgColor="bg-amber-50" 
                             iconColor="text-amber-500" 
                         />
@@ -92,8 +75,7 @@ export default function SuperAdminDashboard() {
                             <div className="p-4 border border-gray-200 rounded-xl bg-slate-50">
                                 <h3 className="font-medium text-gray-800 mb-2">Quick Actions</h3>
                                 <ul className="space-y-2">
-                                    <li className="text-blue-600 hover:underline cursor-pointer">Create New Academy</li>
-                                    <li className="text-blue-600 hover:underline cursor-pointer">View Financial Reports</li>
+                                    <a href="/dashboard/super-admin/academies"><li className="text-blue-600 hover:underline cursor-pointer" >Create New Academy</li></a>
                                     <li className="text-blue-600 hover:underline cursor-pointer">Manage System Settings</li>
                                 </ul>
                             </div>
