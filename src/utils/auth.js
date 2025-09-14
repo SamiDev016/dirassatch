@@ -1,8 +1,7 @@
-
-
 export const setToken = (token) => {
     localStorage.setItem("token", token);
 };
+
 export const getToken = () => {
     return localStorage.getItem("token");
 };
@@ -38,19 +37,13 @@ export const getUserData = async () => {
     }
 };
 
-
-
-
 export const setIsSuperAdmin = (isSuperAdmin) => {
     localStorage.setItem("isSuperAdmin", JSON.stringify(isSuperAdmin));
 };
 export const getIsSuperAdmin = () => {
     return JSON.parse(localStorage.getItem("isSuperAdmin"));
 }
-
-
     
-
 export const getUserById = async (id) => {
     const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
@@ -209,6 +202,7 @@ export const getAcademyDetails = async (id) => {
         const res = await fetch(`${API_BASE}/academy/${id}`);
         if(!res.ok) throw new Error("Failed to fetch academy details");
         const data = await res.json();
+        console.log("🔵 [getAcademyDetails] Academy Details:", data);
         return data;
     }catch(error){
         console.error("Error fetching academy details:", error);
@@ -240,7 +234,44 @@ export const addOwnerToAcademy = async (academyId, userId) => {
     }
   };
   
+export const getTeachersByAcademy = async ({academyId}) =>
+{
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/academy/${academyId}`, {
+           
+        });
+        if (!response.ok) throw new Error("Failed to fetch teachers of academy");
+        const data = await response.json();
+        //we need only teachers
+        const teachers = data.teachers;
+        return teachers;
+    } catch (error) {
+        console.error("Error fetching teachers of academy:", error);
+        return null;
+    }
+}
 
+export const getStudentsByAcademy = async ({academyId}) =>
+    {
+        const API_BASE = import.meta.env.PROD
+        ? import.meta.env.VITE_API_URL
+        : "/api";
+        try {
+            const response = await fetch(`${API_BASE}/academy/${academyId}`, {
+            });
+            if (!response.ok) throw new Error("Failed to fetch students of academy");
+            const data = await response.json();
+            //we need only students
+            const students = data.students;
+            return students;
+        } catch (error) {
+            console.error("Error fetching teachers of academy:", error);
+            return null;
+        }
+    }
 
 // AI FUNCTIONS
 
@@ -268,45 +299,69 @@ export const getGlobalRoles = () => {
     return getIsSuperAdmin() ? ["superAdmin"] : [];
 };
 
-
-
 export const getUserRoles = async () => {
     const userId = getUserId();
     if (!userId) return { globalRoles: [], academies: [], user: null };
 
     const userData = await getUserData();
+    console.log("🔵 [getUserRoles] User Data:", userData);
     if (!userData) {
         return { globalRoles: [], academies: [], user: null };
     }
 
-    const academies = (userData.roles || []).reduce((acc, r) => {
-        let academy = acc.find(a => a.academyId === r.academyId);
+    const academies = [];
+
+    // Handle academyLinks (owner / manager)
+    (userData.academyLinks || []).forEach(link => {
+        let academy = academies.find(a => a.academyId === link.academyId);
 
         if (!academy) {
             academy = {
-                academyId: r.academyId,
-                academyName: r.academyName,
+                academyId: link.academyId,
+                academyName: link.academy?.name || "",
                 roles: new Set()
             };
-            acc.push(academy);
+            academies.push(academy);
         }
 
-        academy.roles.add(r.role.name); 
-        return acc;
-    }, []).map(a => ({
-        ...a,
-        roles: Array.from(a.roles) 
-    }));
+        if (link.role?.name) {
+            academy.roles.add(link.role.name.toLowerCase()); // e.g. "owner"
+        }
+    });
+
+    // Handle groups (STUDENT / TEACHER)
+    (userData.groups || []).forEach(group => {
+        const academyId = group.course?.academy?.id;
+        if (!academyId) return;
+
+        let academy = academies.find(a => a.academyId === academyId);
+
+        if (!academy) {
+            academy = {
+                academyId,
+                academyName: group.course?.academy?.name || "",
+                roles: new Set()
+            };
+            academies.push(academy);
+        }
+
+        if (group.role) {
+            academy.roles.add(group.role.toLowerCase()); // "student" / "teacher"
+        }
+    });
 
     return {
         globalRoles: getGlobalRoles(),
-        academies,
+        academies: academies.map(a => ({
+            ...a,
+            roles: Array.from(a.roles)
+        })),
         user: userData
     };
 };
 
 
-export const resolveDashboardRoute = async (choosenAcademyId) => {
+export const resolveDashboardRoute = async (choosenAcademyId, choosenRole) => {
     const { globalRoles, academies } = await getUserRoles();
 
     if (globalRoles.includes("superAdmin")) {
@@ -315,24 +370,39 @@ export const resolveDashboardRoute = async (choosenAcademyId) => {
 
     if (academies.length === 1) {
         const academy = academies[0];
-
-        if (academy.roles.includes("manager") || academy.roles.includes("owner")) {
-            const route = `/dashboard/academy/${academy.academyId}/admin`;
-            return route;
+        console.log("🔵 [resolveDashboardRoute]     choosenRole********:", choosenRole);
+        if (choosenRole === "manager" || choosenRole === "owner") {
+            return `/dashboard/academy/${academy.academyId}/admin`;
         }
 
-        const route = `/dashboard/academy/${academy.academyId}`;
-        return route;
+        if (choosenRole === "teacher") {
+            return `/dashboard/academy/${academy.academyId}/teacher`;
+        }
+
+        if (choosenRole === "student") {
+            return `/dashboard/academy/${academy.academyId}/student`;
+        }
+
+        return `/dashboard/academy/${academy.academyId}`;
     }
 
     if (academies.length > 1) {
         const academy = academies.find(a => a.academyId === choosenAcademyId);
-        if (academy.roles.includes("manager") || academy.roles.includes("owner")) {
-            const route = `/dashboard/academy/${academy.academyId}/admin`;
-            return route;
+        if (!academy) return "/dashboard";
+
+        if (choosenRole === "manager" || choosenRole === "owner") {
+            return `/dashboard/academy/${academy.academyId}/admin`;
         }
-        const route = `/dashboard/academy/${academy.academyId}`;
-        return route;
+
+        if (choosenRole === "teacher") {
+            return `/dashboard/academy/${academy.academyId}/teacher`;
+        }
+
+        if (choosenRole === "student") {
+            return `/dashboard/academy/${academy.academyId}/student`;
+        }
+
+        return `/dashboard/academy/${academy.academyId}/admin`;
     }
 
     return "/dashboard";
@@ -559,7 +629,6 @@ export async function getAllCourses(){
         return null;
     }
 }
-
 export async function createCourse({
     cover,
     academyId,
@@ -580,46 +649,52 @@ export async function createCourse({
       : "/api";
   
     try {
-      // Debug: log the payload before sending
+      // Build payload as Swagger expects
       const payload = {
-        cover,
-        academyId,
-        moduleId,
-        name,
-        description,
-        targetAudience,
-        prerequisites,
-        whatYouWillLearn,
-        whatYouCanDoAfter,
-        minAge,
-        maxAge,
-        price,
-        chapters,
+        cover: cover || "",
+        academyId: academyId ? Number(academyId) : null,
+        moduleId: moduleId ? Number(moduleId) : null,
+        name: name || "",
+        description: description || "",
+        targetAudience: targetAudience || "",
+        prerequisites: prerequisites || "",
+        whatYouWillLearn: whatYouWillLearn || "",
+        whatYouCanDoAfter: whatYouCanDoAfter || "",
+        minAge: minAge ? Number(minAge) : null,
+        maxAge: maxAge ? Number(maxAge) : null,
+        price: price ? Number(price) : 0,
+        chapters: JSON.stringify(
+          Array.isArray(chapters)
+            ? chapters.map((ch, index) => ({
+                name: ch.title,
+                description: ch.content,
+                order: index + 1,
+              }))
+            : []
+        ),
       };
-      console.log("🚀 createCourse payload:", payload);
+  
+      console.log("🚀 createCourse final payload:", payload);
   
       const response = await fetch(`${API_BASE}/course/create`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${getToken()}`,
+          Authorization: `Bearer ${getToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
   
-      // Debug: log the raw response
       console.log("🚀 createCourse raw response:", response);
   
-      const resultText = await response.text(); // get raw text first
+      const resultText = await response.text();
       console.log("🚀 createCourse response text:", resultText);
   
-      // Try parsing JSON
       let result;
       try {
         result = JSON.parse(resultText);
-      } catch (parseError) {
-        console.warn("⚠️ Failed to parse JSON response:", parseError);
-        result = resultText; // fallback to raw text
+      } catch {
+        result = resultText;
       }
   
       if (!response.ok) {
@@ -634,6 +709,7 @@ export async function createCourse({
       return null;
     }
   }
+  
   
 
 export async function getCoursesByAcademy({academyId}){
@@ -775,31 +851,37 @@ export async function getGroupByID({id}){
         return null;
     }
 }
-
-export async function addMemberToGroup({userId,groupId,role}){ //STUDENT or TEACHER
+export async function addMemberToGroup({ userId, groupId, role }) {
     const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
+      ? import.meta.env.VITE_API_URL
+      : "/api";
+  
     try {
-        const response = await fetch(`${API_BASE}/groups/${groupId}/members`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${getToken()}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId,role })
-        });
-        if (!response.ok) throw new Error("Failed to add user to group");
-        const result = await response.json();
-        return result;
+      const response = await fetch(`${API_BASE}/groups/${groupId}/members`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, groupId, role }), 
+      });
+  
+      const text = await response.text();
+      console.log("[addMemberToGroup] Raw response:", text);
+  
+      if (!response.ok) {
+        throw new Error(`Failed to add user to group (${response.status})`);
+      }
+  
+      return JSON.parse(text);
     } catch (error) {
-        console.error("Error adding user to group:", error);
-        return null;
+      console.error(" Error adding user to group:", error);
+      return null;
     }
-}
+  }
+  
 
 export async function getTotalMemebersByAcademy({$academyId,$role}){}
-
 
 
 export async function getAllMembersOfGroup({groupId}){
@@ -842,3 +924,21 @@ export async function removeMemberFromGroup({userId,groupId}){
     }
 }
     
+export async function getGroupsByCourse({courseId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/groups/course/${courseId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch groups by course");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching groups by course:", error);
+        return null;
+    }
+}

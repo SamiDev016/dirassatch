@@ -150,6 +150,12 @@ export default function DashboardLayout() {
                 </span>
               </div>
               <div className="space-y-1">
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/students`} icon={Users}>
+                  Students
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/teachers`} icon={Users}>
+                  Teachers
+                </NavLink>
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/courses`} icon={BookOpen}>
                   Courses
                 </NavLink>

@@ -82,20 +82,17 @@ export default function CoursesAdmin() {
     try {
       const payload = {
         ...formData,
-        academyId,
-        minAge: parseInt(formData.minAge) || null,
-        maxAge: parseInt(formData.maxAge) || null,
-        price: parseFloat(formData.price) || 0,
-        chapters: JSON.stringify(
-          chapters.map((ch, index) => ({
-            name: ch.title,
-            description: ch.content,
-            order: index + 1,
-          }))
-        ),
+        academyId, // still string from localStorage, we'll fix in createCourse
+        minAge: formData.minAge,
+        maxAge: formData.maxAge,
+        price: formData.price,
+        chapters, // pass array, not stringified
       };
+  
       await createCourse(payload);
-      console.log("Course created successfully!", payload);
+      console.log("✅ Course created successfully!", payload);
+  
+      // reset form
       setIsDialogOpen(false);
       setFormData({
         cover: "",
@@ -113,10 +110,11 @@ export default function CoursesAdmin() {
       setChapters([{ title: "", content: "" }]);
       fetchCourses();
     } catch (error) {
-      alert("Error creating course.");
+      alert("❌ Error creating course.");
       console.error("Error creating course:", error);
     }
   };
+  
 
   // Filter courses based on search term
   const filteredCourses = courses.filter(course => 

@@ -19,15 +19,18 @@ export default function DashboardHome() {
                 return;
             }
 
-            if (academies.length === 1) {
-                const route = await resolveDashboardRoute(academies[0].academyId);
+            // One academy & one role → auto redirect
+            if (academies.length === 1 && academies[0].roles.length === 1) {
+                const route = await resolveDashboardRoute(academies[0].academyId,academies[0].roles[0]);
                 localStorage.setItem("selectedAcademyId", academies[0].academyId);
+                localStorage.setItem("selectedRole",academies[0].roles[0]);
                 setRedirectTo(route);
                 setLoading(false);
                 return;
             }
 
-            if (academies.length > 1) {
+            // Otherwise → let user choose
+            if (academies.length > 0) {
                 setAcademies(academies);
                 setLoading(false);
                 return;
@@ -55,13 +58,13 @@ export default function DashboardHome() {
         return <Navigate to={redirectTo} replace />;
     }
 
-    if (academies.length > 1) {
+    if (academies.length > 0) {
         return (
             <div className="max-w-4xl mx-auto">
                 {/* Header Section */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to EduDash</h1>
-                    <p className="text-slate-600">Choose an academy to access your dashboard and manage your courses.</p>
+                    <p className="text-slate-600">Choose an academy and role to access your dashboard.</p>
                 </div>
 
                 {/* Academy Selection Cards */}
@@ -69,47 +72,42 @@ export default function DashboardHome() {
                     {academies.map((academy) => (
                         <div
                             key={academy.academyId}
-                            className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 group cursor-pointer"
-                            onClick={async () => {
-                                localStorage.setItem("selectedAcademyId", academy.academyId);
-                                const route = await resolveDashboardRoute(academy.academyId);
-                                setRedirectTo(route);
-                            }}
+                            className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 group"
                         >
                             {/* Academy Icon */}
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
                                 <GraduationCap className="w-8 h-8 text-white" />
                             </div>
 
                             {/* Academy Info */}
                             <div className="mb-4">
-                                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">
                                     {academy.academyName}
                                 </h3>
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span className="text-sm text-slate-600">Active</span>
                                 </div>
-                                {academy.roles && (
-                                    <div className="flex items-center gap-2">
-                                        {academy.roles.includes("owner") || academy.roles.includes("manager") ? (
-                                            <Shield className="w-4 h-4 text-amber-500" />
-                                        ) : (
-                                            <Users className="w-4 h-4 text-blue-500" />
-                                        )}
-                                        <span className="text-sm text-slate-500 capitalize">
-                                            {academy.roles.join(", ")}
-                                        </span>
-                                    </div>
-                                )}
                             </div>
 
-                            {/* Action Button */}
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                                <span className="text-sm font-medium text-slate-600 group-hover:text-blue-600 transition-colors">
-                                    Access Dashboard
-                                </span>
-                                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                            {/* Role Selection Buttons */}
+                            <div className="space-y-2">
+                                {academy.roles.map((role) => (
+                                    <button
+                                        key={role}
+                                        
+                                        onClick={async () => {
+                                            localStorage.setItem("selectedAcademyId", academy.academyId);
+                                            localStorage.setItem("selectedRole", role);
+                                            const route = await resolveDashboardRoute(academy.academyId, role);
+                                            setRedirectTo(route);
+                                        }}
+                                        className="w-full flex items-center justify-between px-4 py-2 border border-slate-200 rounded-xl text-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                                    >
+                                        <span className="capitalize font-medium">{role}</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     ))}
@@ -122,8 +120,7 @@ export default function DashboardHome() {
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-2">Need Help?</h3>
                     <p className="text-slate-600 mb-4">
-                        If you can't find the academy you're looking for or need access to additional academies, 
-                        please contact your administrator.
+                        If you can't find the academy or role you're looking for, please contact your administrator.
                     </p>
                     <button className="px-6 py-2 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-colors font-medium">
                         Contact Support

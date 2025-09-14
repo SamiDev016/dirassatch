@@ -10,6 +10,7 @@ export default function AcademyDetails() {
   const [email, setEmail] = useState("");
   const [adding, setAdding] = useState(false);
   const [owners, setOwners] = useState([]);
+
   const [stats, setStats] = useState({
     students: 0,
     teachers: 0,
@@ -30,7 +31,6 @@ export default function AcademyDetails() {
         );
         setOwners(ownersData);
         
-        // Set fake statistics for now
         setStats({
           students: Math.floor(Math.random() * 200) + 50,
           teachers: Math.floor(Math.random() * 30) + 10,

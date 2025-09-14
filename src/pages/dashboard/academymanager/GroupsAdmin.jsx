@@ -3,72 +3,99 @@ import {
   createGroup,
   updateGroup,
   deleteGroup,
-  getGroupsByAcademy,
+  getGroupsByCourse,
   addMemberToGroup,
   removeMemberFromGroup,
   getAllMembersOfGroup,
-  getCoursesByAcademy
+  getCoursesByAcademy,
 } from "../../../utils/auth";
-import { Users, UserPlus, Edit, Trash2, BookOpen, PlusCircle, Search, Filter, UserCheck, UserX, User, X } from "lucide-react";
+import {
+  Users,
+  UserPlus,
+  Edit,
+  Trash2,
+  BookOpen,
+  PlusCircle,
+  Search,
+  UserCheck,
+  UserX,
+  User,
+  X,
+} from "lucide-react";
 
 export default function GroupsAdmin() {
   const [groups, setGroups] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [members, setMembers] = useState([]);
   const [formData, setFormData] = useState({ id: null, name: "", courseId: "" });
   const [memberForm, setMemberForm] = useState({ userId: "", role: "STUDENT" });
   const [loading, setLoading] = useState(false);
-
   const [academyId, setAcademyId] = useState(null);
 
   // Load academyId from localStorage once
-useEffect(() => {
+  useEffect(() => {
     const stored = localStorage.getItem("selectedAcademyId");
     if (stored) {
-      setAcademyId(Number(stored)); 
+      setAcademyId(Number(stored));
     }
   }, []);
-  
-  // Run fetches when academyId is ready
+
+  // Load courses when academyId is ready
   useEffect(() => {
     if (academyId) {
-      fetchGroups();
       fetchCourses();
     }
   }, [academyId]);
-  
+
+  // Load groups whenever selectedCourseId changes
+  useEffect(() => {
+    if (selectedCourseId) {
+      fetchGroups();
+    }
+  }, [selectedCourseId]);
 
   async function fetchGroups() {
+    if (!selectedCourseId) return; // don’t call API with null
     setLoading(true);
-    const data = await getGroupsByAcademy({academyId});
+    const data = await getGroupsByCourse({ courseId: selectedCourseId });
     if (data) setGroups(data);
     setLoading(false);
   }
+  
 
   async function fetchCourses() {
     setLoading(true);
-    const data = await getCoursesByAcademy({academyId});
+    const data = await getCoursesByAcademy({ academyId });
     if (data) setCourses(data);
     setLoading(false);
   }
 
   async function handleSaveGroup(e) {
     e.preventDefault();
+  
+    let payload = {
+      name: formData.name,
+      courseId: Number(formData.courseId),
+    };
+  
     if (formData.id) {
-      await updateGroup({
-        ...formData,
-        courseId: Number(formData.courseId),
-      });
+      await updateGroup({ ...payload, id: formData.id });
     } else {
-      await createGroup({
-        name: formData.name,
-        courseId: Number(formData.courseId),
-      });
+      await createGroup(payload);
     }
+  
+    // Reset form
     setFormData({ id: null, name: "", courseId: "" });
+  
+    // Make sure we are looking at the right course
+    setSelectedCourseId(payload.courseId);
+  
+    // Refresh groups for that course
     fetchGroups();
   }
+  
 
   async function handleDeleteGroup(id) {
     if (!confirm("Are you sure you want to delete this group?")) return;
@@ -105,14 +132,33 @@ useEffect(() => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Users className="h-6 w-6 text-blue-600" /> 
+            <Users className="h-6 w-6 text-blue-600" />
             Groups Management
           </h1>
-          <p className="text-gray-500 mt-1">Create and manage student and teacher groups</p>
+          <p className="text-gray-500 mt-1">
+            Create and manage student and teacher groups
+          </p>
+        </div>
+        {/* Course selector */}
+        <div>
+          <select
+            value={selectedCourseId || ""}
+            onChange={(e) => setSelectedCourseId(Number(e.target.value))}
+            className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Select a course</option>
+            {courses.map((course) => (
+              <option key={course.id} value={course.id}>
+                {course.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
+      {/* Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Group form */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
@@ -124,18 +170,24 @@ useEffect(() => {
             <div className="p-4">
               <form onSubmit={handleSaveGroup} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Group Name
+                  </label>
                   <input
                     type="text"
                     placeholder="Enter group name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Associated Course</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Associated Course
+                  </label>
                   <select
                     value={formData.courseId}
                     onChange={(e) =>
@@ -156,13 +208,19 @@ useEffect(() => {
                   type="submit"
                   className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
                 >
-                  {formData.id ? <Edit className="h-4 w-4" /> : <PlusCircle className="h-4 w-4" />}
+                  {formData.id ? (
+                    <Edit className="h-4 w-4" />
+                  ) : (
+                    <PlusCircle className="h-4 w-4" />
+                  )}
                   {formData.id ? "Update Group" : "Create Group"}
                 </button>
                 {formData.id && (
                   <button
                     type="button"
-                    onClick={() => setFormData({ id: null, name: "", courseId: "" })}
+                    onClick={() =>
+                      setFormData({ id: null, name: "", courseId: "" })
+                    }
                     className="w-full border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     Cancel Editing
@@ -173,6 +231,7 @@ useEffect(() => {
           </div>
         </div>
 
+        {/* Groups list */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
@@ -191,7 +250,7 @@ useEffect(() => {
                 />
               </div>
             </div>
-            
+
             <div className="p-4">
               {loading ? (
                 <div className="text-center py-8">
@@ -202,7 +261,9 @@ useEffect(() => {
                 <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
                   <Users className="h-10 w-10 mx-auto text-gray-400 mb-3" />
                   <p className="text-gray-700 font-medium">No groups found</p>
-                  <p className="text-gray-500 text-sm mt-1">Create your first group using the form</p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Select a course and create your first group
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -218,7 +279,8 @@ useEffect(() => {
                         </h3>
                         <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                           <BookOpen className="h-3.5 w-3.5" />
-                          {courses.find(c => c.id === g.courseId)?.name || `Course ID: ${g.courseId}`}
+                          {courses.find((c) => c.id === g.courseId)?.name ||
+                            `Course ID: ${g.courseId}`}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -264,18 +326,23 @@ useEffect(() => {
               <UserCheck className="h-5 w-5 text-blue-600" />
               Members of {selectedGroup.name}
             </h2>
-            <button 
+            <button
               onClick={() => setSelectedGroup(null)}
               className="text-gray-500 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-200 transition-colors duration-200"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
-          
+
           <div className="p-4">
-            <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <form
+              onSubmit={handleAddMember}
+              className="flex flex-col sm:flex-row gap-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200"
+            >
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  User ID
+                </label>
                 <input
                   type="number"
                   placeholder="Enter user ID"
@@ -288,7 +355,9 @@ useEffect(() => {
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Role
+                </label>
                 <select
                   value={memberForm.role}
                   onChange={(e) =>
@@ -298,7 +367,6 @@ useEffect(() => {
                 >
                   <option value="STUDENT">STUDENT</option>
                   <option value="TEACHER">TEACHER</option>
-                  <option value="ASSISTANT">ASSISTANT</option>
                 </select>
               </div>
               <div className="flex items-end">
@@ -315,14 +383,20 @@ useEffect(() => {
             {members.length === 0 ? (
               <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
                 <User className="h-10 w-10 mx-auto text-gray-400 mb-3" />
-                <p className="text-gray-700 font-medium">No members in this group</p>
-                <p className="text-gray-500 text-sm mt-1">Add members using the form above</p>
+                <p className="text-gray-700 font-medium">
+                  No members in this group
+                </p>
+                <p className="text-gray-500 text-sm mt-1">
+                  Add members using the form above
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-between items-center mb-2 px-2">
                   <h3 className="font-medium text-gray-700">Current Members</h3>
-                  <span className="text-sm text-gray-500">{members.length} member{members.length !== 1 ? 's' : ''}</span>
+                  <span className="text-sm text-gray-500">
+                    {members.length} member{members.length !== 1 ? "s" : ""}
+                  </span>
                 </div>
                 {members.map((m) => (
                   <div
@@ -334,13 +408,15 @@ useEffect(() => {
                         <User className="h-5 w-5 text-gray-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-800">User ID: {m.userId}</p>
+                        <p className="font-medium text-gray-800">
+                          User ID: {m.userId}
+                        </p>
                         <p className="text-sm text-gray-500">
-                          {m.role === 'TEACHER' ? (
+                          {m.role === "TEACHER" ? (
                             <span className="text-green-600 font-medium flex items-center gap-1">
                               <BookOpen className="h-3.5 w-3.5" /> Teacher
                             </span>
-                          ) : m.role === 'ASSISTANT' ? (
+                          ) : m.role === "ASSISTANT" ? (
                             <span className="text-blue-600 font-medium flex items-center gap-1">
                               <UserCheck className="h-3.5 w-3.5" /> Assistant
                             </span>

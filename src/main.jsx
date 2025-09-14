@@ -16,8 +16,8 @@ import Test from './pages/Test.jsx'
 import DashboardLayout from './pages/dashboard/layouts/DashboardLayout.jsx'
 import DashboardHome from './pages/dashboard/DashboardHome.jsx'
 import SuperAdminDashboard from './pages/dashboard/superadmin/SuperAdminDashboard.jsx'
-import TeacherDashboard from './pages/dashboard/TeacherDashboard.jsx'
-import StudentDashboard from './pages/dashboard/StudentDashboard.jsx'
+import TeacherDashboard from './pages/dashboard/teacher/TeacherDashboard.jsx'
+import StudentDashboard from './pages/dashboard/student/StudentDashboard.jsx'
 import AcademyAdminDashboard from './pages/dashboard/academymanager/AcademyAdminDashboard.jsx'
 import ProfileSettings from './pages/dashboard/ProfileSettings.jsx'
 import AcademyDetails from './pages/dashboard/superadmin/AcademyDetails.jsx'
@@ -28,6 +28,9 @@ import CoursesAdmin from './pages/dashboard/academymanager/CoursesAdmin.jsx'
 import GroupsAdmin from './pages/dashboard/academymanager/GroupsAdmin.jsx'
 import ProfileAdminDashboard from './pages/dashboard/academymanager/ProfileAdminDashboard.jsx'
 import ManageAcademies from './pages/dashboard/superadmin/ManageAcademies.jsx'
+import TeachersAdmin from './pages/dashboard/academymanager/TeachersAdmin.jsx'
+import StudentsAdmin from './pages/dashboard/academymanager/StudentsAdmin.jsx'
+
 
 
 
@@ -160,6 +163,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["manager", "owner"]}>
             <GroupsAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/teachers',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <TeachersAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/students',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <StudentsAdmin />
           </ProtectedRoute>
         ),
       },
