@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllAcademies } from '../../../utils/auth';
+import { getAllAcademies, getAllTeachers, getAllStudents } from '../../../utils/auth';
 import StatCard from '../../../components/dashboard/StatCard';
 import { School, DollarSign, Users, GraduationCap, BookOpen } from 'lucide-react';
 
@@ -16,13 +16,14 @@ export default function SuperAdminDashboard() {
         const fetchData = async () => {
             try {
                 setLoading(true);
+                const totalTeachers = await getAllTeachers();
                 const academies = await getAllAcademies();
-                
+                const totalStudents = await getAllStudents();
                 setStats({
                     academies: academies?.length || 0,
                     revenue: 125000,
-                    totalStudents:0,
-                    totalTeachers: 0
+                    totalStudents: totalStudents,
+                    totalTeachers: totalTeachers
                 });
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);

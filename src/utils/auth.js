@@ -202,7 +202,6 @@ export const getAcademyDetails = async (id) => {
         const res = await fetch(`${API_BASE}/academy/${id}`);
         if(!res.ok) throw new Error("Failed to fetch academy details");
         const data = await res.json();
-        console.log("🔵 [getAcademyDetails] Academy Details:", data);
         return data;
     }catch(error){
         console.error("Error fetching academy details:", error);
@@ -879,9 +878,19 @@ export async function addMemberToGroup({ userId, groupId, role }) {
       return null;
     }
   }
-  
 
-export async function getTotalMemebersByAcademy({$academyId,$role}){}
+  export async function getTotalMemebersByAcademy({ $academyId }) {
+    const academy = await getAcademyDetails($academyId);
+    const teachers = academy.teachers || [];
+    const students = academy.students || [];
+    const countTeacher = teachers.length;
+    const countStudent = students.length;
+  
+  
+    return { countTeacher, countStudent };
+  }
+  
+  
 
 
 export async function getAllMembersOfGroup({groupId}){
@@ -939,6 +948,141 @@ export async function getGroupsByCourse({courseId}){
         return result;
     } catch (error) {
         console.error("Error fetching groups by course:", error);
+        return null;
+    }
+}
+
+
+
+export async function getAllTeachers() {
+    const academies = await getAllAcademies(); // add const
+    let count = 0;
+
+    for (let i = 0; i < academies.length; i++) {
+        const academy = academies[i];
+        const teachers = await getTeachersByAcademy({ academyId: academy.id || academy.academyId });
+        count += teachers.length;
+    }
+    return count;
+}
+export async function getAllStudents() {
+    const academies = await getAllAcademies(); // add const
+    let count = 0;
+
+    for (let i = 0; i < academies.length; i++) {
+        const academy = academies[i];
+        const students = await getStudentsByAcademy({ academyId: academy.id || academy.academyId });
+        count += students.length;
+    }
+    return count;
+}
+
+
+//sections
+// {
+//     "name": "Introduction",
+//     "description": "This is the introduction section",
+//     "order": 1,
+//     "chapterId": 1
+//   }
+export async function createSection({name,description,order,chapterId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/sections`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name,description,order,chapterId })
+        });
+        if (!response.ok) throw new Error("Failed to create section");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating section:", error);
+        return null;
+    }
+}
+
+export async function getSectionsByChapter({chapterId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/sections/chapter/${chapterId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch sections by chapter");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching sections by chapter:", error);
+        return null;
+    }
+}
+
+export async function getSectionByID({sectionId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/sections/${sectionId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch section by ID");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching section by ID:", error);
+        return null;
+    }
+}
+
+export async function updateSection({sectionId,name,description,order,chapterId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/sections/${sectionId}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name,description,order,chapterId })
+        });
+        if (!response.ok) throw new Error("Failed to update section");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating section:", error);
+        return null;
+    }
+}
+
+export async function deleteSection({sectionId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/sections/${sectionId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to delete section");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error deleting section:", error);
         return null;
     }
 }

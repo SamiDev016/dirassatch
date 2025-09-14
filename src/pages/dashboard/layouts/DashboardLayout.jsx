@@ -10,6 +10,7 @@ import {
   Settings,
   ChevronRight,
   User,
+  MousePointerBanIcon,
 } from "lucide-react";
 import { getUserRoles, getUserData, logout } from "../../../utils/auth";
 import { useRef } from "react";
@@ -167,6 +168,9 @@ export default function DashboardLayout() {
                 </NavLink>
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/chapters`} icon={BookOpen}>
                   Chapters
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/sections`} icon={MousePointerBanIcon}>
+                  Sections
                 </NavLink>
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/settings`} icon={Settings}>
                   Settings

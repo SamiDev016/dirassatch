@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getAcademyDetails, addOwnerToAcademy, getUserById,getUserByEmail } from "../../../utils/auth";
+import { getAcademyDetails, addOwnerToAcademy, getUserById,getUserByEmail, getTotalMemebersByAcademy, getCoursesByAcademy } from "../../../utils/auth";
 
 export default function AcademyDetails() {
   const { academyId } = useParams();
@@ -16,7 +16,6 @@ export default function AcademyDetails() {
     teachers: 0,
     courses: 0,
     completionRate: 0,
-    avgAttendance: 0,
     activeModules: 0
   });
 
@@ -26,18 +25,32 @@ export default function AcademyDetails() {
         setLoading(true);
         const data = await getAcademyDetails(academyId);
         setAcademy(data);
-        const ownersData = await Promise.all(
-          data.owners.map((ownerId) => getUserById(ownerId))
-        );
+  
+        // ✅ Get owners directly from userLinks
+        const ownersData = data.userLinks
+          .filter((link) => link.role?.name === "owner") // only owners
+          .map((link) => ({
+            id: link.user.id,
+            firstName: link.user.firstName,
+            lastName: link.user.lastName,
+            email: link.user.account?.email,
+            profilePhoto: link.user.profilePhoto,
+          }));
+  
         setOwners(ownersData);
-        
+  
+        // Stats still mocked for now
+        const { countTeacher, countStudent } = await getTotalMemebersByAcademy({
+          $academyId: academyId,
+        });
+      
+        const coursesCount = await getCoursesByAcademy({ academyId });
         setStats({
-          students: Math.floor(Math.random() * 200) + 50,
-          teachers: Math.floor(Math.random() * 30) + 10,
-          courses: Math.floor(Math.random() * 40) + 15,
+          students: countStudent,
+          teachers: countTeacher,
+          courses: coursesCount.length,
           completionRate: Math.floor(Math.random() * 30) + 70,
-          avgAttendance: Math.floor(Math.random() * 15) + 80,
-          activeModules: Math.floor(Math.random() * 25) + 10
+          activeModules: Math.floor(Math.random() * 25) + 10,
         });
       } catch (err) {
         setError("Failed to load academy details");
@@ -45,8 +58,10 @@ export default function AcademyDetails() {
         setLoading(false);
       }
     };
+  
     fetchAcademy();
   }, [academyId]);
+  
 
   const handleAddOwner = async (e) => {
     e.preventDefault();
@@ -158,50 +173,6 @@ export default function AcademyDetails() {
           </div>
         </div>
         
-        <div className="p-6 rounded-2xl shadow-sm bg-amber-50 border border-gray-100">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Completion Rate</h3>
-              <p className="text-2xl font-bold text-gray-800">{stats.completionRate}%</p>
-            </div>
-            <div className="p-3 rounded-full text-amber-500 bg-white/80 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="7"></circle>
-                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        <div className="p-6 rounded-2xl shadow-sm bg-rose-50 border border-gray-100">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Avg. Attendance</h3>
-              <p className="text-2xl font-bold text-gray-800">{stats.avgAttendance}%</p>
-            </div>
-            <div className="p-3 rounded-full text-rose-500 bg-white/80 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        <div className="p-6 rounded-2xl shadow-sm bg-indigo-50 border border-gray-100">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Active Modules</h3>
-              <p className="text-2xl font-bold text-gray-800">{stats.activeModules}</p>
-            </div>
-            <div className="p-3 rounded-full text-indigo-500 bg-white/80 shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
@@ -212,21 +183,28 @@ export default function AcademyDetails() {
           </svg>
           Academy Owners
         </h2>
-        {academy.owners.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {owners.map((owner) => (
-              <div key={owner.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                {owner?.name ? owner.name.charAt(0).toUpperCase() : "?"}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-800">{owner.name}</p>
-                  <p className="text-sm text-gray-500">{owner.email}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
+        {owners.length > 0 ? (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {owners.map((owner) => (
+      <div
+        key={owner.id}
+        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
+      >
+        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+          {owner.firstName
+            ? owner.firstName.charAt(0).toUpperCase()
+            : "?"}
+        </div>
+        <div>
+          <p className="font-medium text-gray-800">
+            {owner.firstName} {owner.lastName}
+          </p>
+          <p className="text-sm text-gray-500">{owner.email}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+) : (
           <div className="text-center py-6 bg-gray-50 rounded-xl border border-gray-200">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
