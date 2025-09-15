@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getAcademyDetails, addOwnerToAcademy, getUserById,getUserByEmail, getTotalMemebersByAcademy, getCoursesByAcademy } from "../../../utils/auth";
+import { getOwnersOfAcademy, getAcademyDetails, addOwnerToAcademy, getUserById,getUserByEmail, getTotalMemebersByAcademy, getCoursesByAcademy } from "../../../utils/auth";
 
 export default function AcademyDetails() {
   const { academyId } = useParams();
@@ -26,9 +26,8 @@ export default function AcademyDetails() {
         const data = await getAcademyDetails(academyId);
         setAcademy(data);
   
-        // ✅ Get owners directly from userLinks
         const ownersData = data.userLinks
-          .filter((link) => link.role?.name === "owner") // only owners
+          .filter((link) => link.role?.name === "manager") 
           .map((link) => ({
             id: link.user.id,
             firstName: link.user.firstName,
@@ -79,9 +78,17 @@ export default function AcademyDetails() {
       const updated = await getAcademyDetails(academyId);
       setAcademy(updated);
   
-      const ownersData = await Promise.all(
-        updated.owners.map((ownerId) => getUserById(ownerId))
-      );
+      // Fix: Use the same logic as initial fetch to get owners data
+      const ownersData = updated.userLinks
+        .filter((link) => link.role?.name === "manager") 
+        .map((link) => ({
+          id: link.user.id,
+          firstName: link.user.firstName,
+          lastName: link.user.lastName,
+          email: link.user.account?.email,
+          profilePhoto: link.user.profilePhoto,
+        }));
+      
       setOwners(ownersData);
   
       setEmail("");

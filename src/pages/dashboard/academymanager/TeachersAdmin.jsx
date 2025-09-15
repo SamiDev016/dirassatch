@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
-import { getTeachersByAcademy, getSeanceByTeacher, getUserById, getAttendanceBySeanceUser } from "../../../utils/auth";
+import { getTeachersByAcademy, getUserById } from "../../../utils/auth";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, Mail, Calendar, BookOpen, Users, X, Eye } from "lucide-react";
 
 export default function TeachersAdmin() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [teacherData, setTeacherData] = useState([]);
-  const [expandedTeacher, setExpandedTeacher] = useState(null);
-  const [attendanceData, setAttendanceData] = useState({});
-  const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [teacherDetails, setTeacherDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchTeachers = async () => {
       const academyId = localStorage.getItem("selectedAcademyId");
-
+      
       if (!academyId) {
         setError("No academy selected");
         setLoading(false);
@@ -22,429 +23,297 @@ export default function TeachersAdmin() {
 
       try {
         setLoading(true);
-        console.log("🔵 [TeachersAdmin] Starting data fetch for academy:", academyId);
-
-        // Fetch teachers
-        const teachersData = await getTeachersByAcademy({ academyId });
-        console.log("🔵 [TeachersAdmin] Teachers data:", teachersData);
-
-        if (teachersData && Array.isArray(teachersData)) {
-          setTeachers(teachersData);
-          console.log("🔵 [TeachersAdmin] Teachers set:", teachersData.length, "teachers found");
+        const data = await getTeachersByAcademy({ academyId });
+        
+        if (data && Array.isArray(data)) {
+          const teachersWithGroups = data.map(teacher => ({
+            ...teacher,
+            groupNames: teacher.groups?.filter(g => g.role === 'TEACHER').map(g => g.name) || []
+          }));
+          
+          setTeachers(teachersWithGroups);
         } else {
           setError("No teachers found");
-          console.log("🔴 [TeachersAdmin] No teachers found in response:", teachersData);
         }
-
-
-        // Fetch detailed data for each teacher
-        const teacherDetails = [];
-        for (const teacher of teachersData) {
-          console.log("🔵 [TeachersAdmin] Processing teacher:", teacher);
-          
-          // Get complete teacher data with groups and email
-          const completeTeacherData = await getUserById(teacher.id);
-          console.log(`🔵 [TeachersAdmin] Complete data for teacher ${teacher.id}:`, completeTeacherData);
-          
-          // Get teacher's seances
-          const seances = await getSeanceByTeacher({ teacherId: teacher.id });
-          console.log(`🔵 [TeachersAdmin] Seances for teacher ${teacher.id}:`, seances);
-          
-          // Extract groups from userGroup array where role is TEACHER
-          const teacherGroups = [];
-          if (completeTeacherData && completeTeacherData.userGroup) {
-            completeTeacherData.userGroup.forEach(userGroup => {
-              if (userGroup.role === 'TEACHER' && userGroup.group) {
-                teacherGroups.push({
-                  id: userGroup.group.id,
-                  name: userGroup.group.name,
-                  course: userGroup.group.course
-                });
-              }
-            });
-          }
-          
-          // Also check the groups array if it exists
-          if (completeTeacherData && completeTeacherData.groups) {
-            completeTeacherData.groups.forEach(group => {
-              if (group.role === 'TEACHER') {
-                teacherGroups.push({
-                  id: group.id,
-                  name: group.name,
-                  course: group.course
-                });
-              }
-            });
-          }
-          
-          console.log(`🔵 [TeachersAdmin] Final groups for teacher ${teacher.id}:`, teacherGroups);
-          
-          teacherDetails.push({
-            ...teacher,
-            ...completeTeacherData,
-            seances: seances || [],
-            groups: teacherGroups,
-            email: completeTeacherData?.account?.email || teacher.email || 'N/A'
-          });
-        }
-        
-        setTeacherData(teacherDetails);
-        console.log("🔵 [TeachersAdmin] Final teacher data with details:", teacherDetails);
-
       } catch (err) {
+        console.error(err);
         setError("Failed to load teachers");
-        console.error("🔴 [TeachersAdmin] Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAllData();
+    fetchTeachers();
   }, []);
 
-  const handleTeacherClick = async (teacherId) => {
-    if (expandedTeacher === teacherId) {
-      setExpandedTeacher(null);
-      return;
-    }
-
-    setExpandedTeacher(teacherId);
-    setLoadingAttendance(true);
-
+  const handleShowDetails = async (teacherId) => {
+    setSelectedTeacher(teacherId);
+    setDetailsLoading(true);
+    
     try {
-      console.log(`🔵 [TeachersAdmin] Fetching attendance for teacher ${teacherId}`);
-      
-      const teacher = teacherData.find(t => t.id === teacherId);
-      if (!teacher || !teacher.seances) {
-        console.log(`🔴 [TeachersAdmin] No teacher or seances found for teacher ${teacherId}`);
-        setAttendanceData({});
-        setLoadingAttendance(false);
-        return;
-      }
-
-      const attendanceRecords = [];
-      
-      for (const seance of teacher.seances) {
-        console.log(`🔵 [TeachersAdmin] Fetching attendance for seance ${seance.id}`);
-        
-        try {
-          const attendance = await getAttendanceBySeanceUser({ 
-            seanceId: seance.id, 
-            userId: teacherId 
-          });
-          
-          console.log(`🔵 [TeachersAdmin] Attendance for seance ${seance.id}:`, attendance);
-          
-          if (attendance) {
-            attendanceRecords.push({
-              ...attendance,
-              seanceTitle: seance.title,
-              seanceStartsAt: seance.startsAt
-            });
-          }
-        } catch (error) {
-          console.error(`🔴 [TeachersAdmin] Error fetching attendance for seance ${seance.id}:`, error);
-        }
-      }
-
-      console.log(`🔵 [TeachersAdmin] Final attendance records for teacher ${teacherId}:`, attendanceRecords);
-      setAttendanceData(prev => ({
-        ...prev,
-        [teacherId]: attendanceRecords
-      }));
-
-    } catch (error) {
-      console.error(`🔴 [TeachersAdmin] Error fetching attendance data:`, error);
+      const details = await getUserById(teacherId);
+      setTeacherDetails(details);
+    } catch (err) {
+      console.error("Error fetching teacher details:", err);
     } finally {
-      setLoadingAttendance(false);
+      setDetailsLoading(false);
     }
   };
 
-  if (loading) return <p>Loading teachers...</p>;
-  if (error) return <p>{error}</p>;
+  const handleCloseDetails = () => {
+    setSelectedTeacher(null);
+    setTeacherDetails(null);
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="text-blue-600">Loading teachers...</div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="text-red-600">{error}</div>
+    </div>
+  );
 
   return (
-    <div className="teachers-admin-container">
-      <h1>Teachers Management</h1>
-      
-      {loading && <p>Loading teachers...</p>}
-      {error && <p className="error">{error}</p>}
-      
-      {!loading && !error && (
-        <table className="teachers-table">
-          <thead>
-            <tr>
-              <th>Teacher Name</th>
-              <th>Email</th>
-              <th>Groups</th>
-              <th>Seances Count</th>
-              <th>Upcoming Seances</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teacherData.map((teacher) => (
-              <>
-                <tr 
-                  key={teacher.id} 
-                  onClick={() => handleTeacherClick(teacher.id)}
-                  className={`teacher-row ${expandedTeacher === teacher.id ? 'expanded' : ''}`}
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2 text-blue-600">
+          Teachers
+        </h1>
+        <p className="text-gray-600">Manage and view teacher information</p>
+      </div>
+
+      {/* Teachers List */}
+      <div className="bg-white rounded-lg">
+        <div className="divide-y divide-gray-100">
+          {teachers.map((teacher) => (
+            <motion.div
+              key={teacher.id}
+              className="p-4 hover:bg-gray-50 transition-colors duration-200"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg">
+                    {teacher.firstName?.charAt(0)}{teacher.lastName?.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 text-lg">
+                      {teacher.firstName} {teacher.lastName}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {teacher.groupNames?.map((groupName, index) => (
+                        <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-sm">
+                          {groupName}
+                        </span>
+                      )) || (
+                        <span className="text-gray-500 text-sm">No groups assigned</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleShowDetails(teacher.id)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
                 >
-                  <td>{teacher.firstName} {teacher.lastName}</td>
-                  <td>{teacher.email || teacher.Email || 'N/A'}</td>
-                  <td>
-                    {teacher.groups && teacher.groups.length > 0 ? (
-                      <div className="groups-list">
-                        {teacher.groups.map(group => (
-                          <span key={group.id} className="group-badge">
-                            {group.name}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="no-groups">No groups assigned</span>
-                    )}
-                  </td>
-                  <td>{teacher.seances ? teacher.seances.length : 0}</td>
-                  <td>
-                    {teacher.seances && teacher.seances.length > 0 ? (
-                      <div className="seances-list">
-                        {teacher.seances.slice(0, 3).map(seance => (
-                          <div key={seance.id} className="seance-item">
-                            <strong>{seance.title}</strong>
-                            <br />
-                            <small>{seance.startsAt ? new Date(seance.startsAt).toLocaleDateString() : 'No date'} {seance.startsAt ? new Date(seance.startsAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</small>
+                  <Eye className="w-4 h-4" />
+                  <span>Details</span>
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        
+        {teachers.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">No teachers found</p>
+          </div>
+        )}
+      </div>
+
+      {/* Teacher Details Modal */}
+      <AnimatePresence>
+        {selectedTeacher && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCloseDetails}
+            >
+              {/* Modal Content */}
+              <motion.div
+                className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                      {teacherDetails?.firstName?.charAt(0)}{teacherDetails?.lastName?.charAt(0)}
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        {teacherDetails?.firstName} {teacherDetails?.lastName}
+                      </h2>
+                      <p className="text-sm text-gray-500">Teacher Details</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCloseDetails}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6">
+                  {detailsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-blue-600">Loading teacher details...</div>
+                    </div>
+                  ) : teacherDetails ? (
+                    <div className="space-y-6">
+                      {/* Basic Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <User className="w-5 h-5 mr-2 text-blue-600" />
+                          Basic Information
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="text-sm text-gray-500">Full Name</label>
+                            <p className="font-medium text-gray-900">
+                              {teacherDetails.firstName} {teacherDetails.lastName}
+                            </p>
                           </div>
-                        ))}
-                        {teacher.seances.length > 3 && (
-                          <small>+{teacher.seances.length - 3} more</small>
-                        )}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="text-sm text-gray-500">Email</label>
+                            <p className="font-medium text-gray-900 flex items-center">
+                              <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                              {teacherDetails.account?.email || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="text-sm text-gray-500">Teacher ID</label>
+                            <p className="font-medium text-gray-900">#{teacherDetails.id}</p>
+                          </div>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <label className="text-sm text-gray-500">Member Since</label>
+                            <p className="font-medium text-gray-900 flex items-center">
+                              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                              {new Date(teacherDetails.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    ) : (
-                      <span className="no-seances">No seances scheduled</span>
-                    )}
-                  </td>
-                </tr>
-                {expandedTeacher === teacher.id && (
-                  <tr className="attendance-row">
-                    <td colSpan="5">
-                      <div className="attendance-container">
-                        <h3>Attendance Records for {teacher.firstName} {teacher.lastName}</h3>
-                        {loadingAttendance ? (
-                          <p>Loading attendance data...</p>
-                        ) : attendanceData[teacher.id] && attendanceData[teacher.id].length > 0 ? (
-                          <table className="attendance-table">
-                            <thead>
-                              <tr>
-                                <th>Seance Title</th>
-                                <th>Date & Time</th>
-                                <th>Status</th>
-                                <th>Created At</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {attendanceData[teacher.id].map((attendance) => (
-                                <tr key={`${attendance.seanceId}-${attendance.userId}`}>
-                                  <td>{attendance.seanceTitle || attendance.seance?.title || 'N/A'}</td>
-                                  <td>
-                                    {attendance.seanceStartsAt ? new Date(attendance.seanceStartsAt).toLocaleDateString() : 'N/A'}
-                                    <br />
-                                    <small>
-                                      {attendance.seanceStartsAt ? new Date(attendance.seanceStartsAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
-                                    </small>
-                                  </td>
-                                  <td>
-                                    <span className={`status-badge ${attendance.status?.toLowerCase() || ''}`}>
-                                      {attendance.status || 'N/A'}
+
+                      {/* Groups and Courses */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <Users className="w-5 h-5 mr-2 text-blue-600" />
+                          Groups & Courses
+                        </h3>
+                        <div className="space-y-3">
+                          {teacherDetails.groups?.filter(g => g.role === 'TEACHER').map((group, index) => (
+                            <div key={index} className="bg-blue-50 p-4 rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium text-blue-900">{group.name}</h4>
+                                <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded-md text-sm">
+                                  {group.role}
+                                </span>
+                              </div>
+                              {group.course && (
+                                <div className="flex items-center text-sm text-blue-700">
+                                  <BookOpen className="w-4 h-4 mr-2" />
+                                  {group.course.name}
+                                  {group.course.academy && (
+                                    <span className="ml-2 text-blue-600">
+                                      • {group.course.academy.name}
                                     </span>
-                                  </td>
-                                  <td>
-                                    {attendance.createdAt ? new Date(attendance.createdAt).toLocaleDateString() : 'N/A'}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        ) : (
-                          <p className="no-attendance">No attendance records found</p>
-                        )}
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )) || (
+                            <div className="text-gray-500 text-center py-4">
+                              No groups assigned
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                )}
-              </>
-            ))}
-          </tbody>
-        </table>
-      )}
-      
-      <style>{`
-        .teachers-admin-container {
-          padding: 20px;
-        }
-        
-        .teachers-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 20px;
-          background: white;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .teachers-table th,
-        .teachers-table td {
-          padding: 12px 15px;
-          text-align: left;
-          border-bottom: 1px solid #ddd;
-        }
-        
-        .teachers-table th {
-          background-color: #f8f9fa;
-          font-weight: 600;
-          color: #333;
-        }
-        
-        .teachers-table tr:hover {
-          background-color: #f5f5f5;
-        }
-        
-        .teacher-row {
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-        }
-        
-        .teacher-row:hover {
-          background-color: #e3f2fd !important;
-        }
-        
-        .teacher-row.expanded {
-          background-color: #bbdefb !important;
-          border-bottom: 2px solid #2196f3;
-        }
-        
-        .attendance-row {
-          background-color: #f8f9fa;
-        }
-        
-        .attendance-container {
-          padding: 20px;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          margin: 10px 0;
-        }
-        
-        .attendance-container h3 {
-          margin-top: 0;
-          color: #333;
-          border-bottom: 2px solid #2196f3;
-          padding-bottom: 10px;
-        }
-        
-        .attendance-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 15px;
-          background: white;
-          border-radius: 6px;
-          overflow: hidden;
-          border: 1px solid #ddd;
-        }
-        
-        .attendance-table th,
-        .attendance-table td {
-          padding: 12px 15px;
-          text-align: left;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .attendance-table th {
-          background-color: #f8f9fa;
-          font-weight: 600;
-          color: #333;
-          border-bottom: 2px solid #ddd;
-        }
-        
-        .attendance-table tr:hover {
-          background-color: #f5f5f5;
-        }
-        
-        .status-badge {
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-        
-        .status-badge.present {
-          background-color: #d4edda;
-          color: #155724;
-        }
-        
-        .status-badge.absent {
-          background-color: #f8d7da;
-          color: #721c24;
-        }
-        
-        .status-badge.late {
-          background-color: #fff3cd;
-          color: #856404;
-        }
-        
-        .no-attendance {
-          color: #666;
-          font-style: italic;
-          text-align: center;
-          padding: 20px;
-        }
-        
-        .groups-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 5px;
-        }
-        
-        .group-badge {
-          background-color: #007bff;
-          color: white;
-          padding: 2px 8px;
-          border-radius: 12px;
-          font-size: 12px;
-        }
-        
-        .no-groups,
-        .no-seances {
-          color: #666;
-          font-style: italic;
-        }
-        
-        .seances-list {
-          max-height: 100px;
-          overflow-y: auto;
-        }
-        
-        .seance-item {
-          margin-bottom: 8px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .seance-item:last-child {
-          border-bottom: none;
-          margin-bottom: 0;
-          padding-bottom: 0;
-        }
-        
-        .error {
-          color: #dc3545;
-          background-color: #f8d7da;
-          padding: 10px;
-          border-radius: 4px;
-          border: 1px solid #f5c6cb;
-        }
-      `}</style>
+
+                      {/* User Groups (Detailed) */}
+                      {teacherDetails.userGroup && teacherDetails.userGroup.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <BookOpen className="w-5 h-5 mr-2 text-blue-600" />
+                            Course Details
+                          </h3>
+                          <div className="space-y-3">
+                            {teacherDetails.userGroup.filter(ug => ug.role === 'TEACHER').map((userGroup, index) => (
+                              <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm text-gray-500">Group</label>
+                                    <p className="font-medium text-gray-900">{userGroup.group?.name}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm text-gray-500">Role</label>
+                                    <p className="font-medium text-gray-900">{userGroup.role}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm text-gray-500">Joined</label>
+                                    <p className="font-medium text-gray-900">
+                                      {new Date(userGroup.createdAt).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm text-gray-500">Status</label>
+                                    <p className="font-medium text-gray-900">
+                                      {userGroup.group?.active ? 'Active' : 'Inactive'}
+                                    </p>
+                                  </div>
+                                </div>
+                                {userGroup.group?.course && (
+                                  <div className="mt-4 pt-4 border-t border-gray-200">
+                                    <label className="text-sm text-gray-500">Course</label>
+                                    <p className="font-medium text-gray-900">{userGroup.group.course.name}</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {userGroup.group.course.description}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-gray-500">Failed to load teacher details</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

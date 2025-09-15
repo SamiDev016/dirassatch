@@ -180,12 +180,11 @@ export default function ExamsAdmin() {
     
     for (const userIdStr of Object.keys(grades)) {
       console.log('🔍 Debug - processing userIdStr:', userIdStr, 'type:', typeof userIdStr);
-      const userId = Number(userIdStr); // Convert string key to number
+      const userId = Number(userIdStr); 
       console.log('🔍 Debug - converted userId:', userId, 'type:', typeof userId);
       const gradeValue = grades[userIdStr];
       console.log('🔍 Debug - gradeValue:', gradeValue, 'for userId:', userId);
       
-      // Skip empty grades
       if (gradeValue === "" || gradeValue === null || gradeValue === undefined) {
         continue;
       }
@@ -198,10 +197,12 @@ export default function ExamsAdmin() {
         continue;
       }
       
+      console.log('🔍 Debug - sending grade as number:', numericGrade, 'type:', typeof numericGrade);
+      
       const result = await updateOrCreateGradeForUser({
         examId: currentExam.id,
-        userId: userId, // Send as number
-        grade: String(numericGrade), // Send as numeric string for API validation
+        UserId: userId, // Send as number (API expects UserId with capital U)
+        grade: numericGrade, // Send as number (API expects number, not string)
       });
       
       if (result) {
