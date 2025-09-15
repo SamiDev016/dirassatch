@@ -125,19 +125,15 @@ export const updateUserProfile = async (id, firstName, lastName, phone, profileP
     }
 };
 
-
 export const isLoggedIn = () => {
     const token = getToken();
     return !!token;
 };
 
-
 export const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("selectedAcademyId");
 };
-
-
 
 export const getAllAcademies = async () => {
     const API_BASE = import.meta.env.PROD
@@ -154,7 +150,6 @@ export const getAllAcademies = async () => {
         return null;
     }
 };    
-
 
 export const createAcademy = async (data) => {
     const API_BASE = import.meta.env.PROD
@@ -303,7 +298,6 @@ export const getUserRoles = async () => {
     if (!userId) return { globalRoles: [], academies: [], user: null };
 
     const userData = await getUserData();
-    console.log("🔵 [getUserRoles] User Data:", userData);
     if (!userData) {
         return { globalRoles: [], academies: [], user: null };
     }
@@ -750,24 +744,19 @@ export async function getCourseById({id}){
 }
 
 //groups
-export async function getGroupsByAcademy({academyId}){
-    const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
-    try {
-        const response = await fetch(`${API_BASE}/groups/academy/${academyId}`, {
-            headers: {
-                "Authorization": `Bearer ${getToken()}`,
-            }
-        });
-        if (!response.ok) throw new Error("Failed to fetch groups");
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error("Error fetching groups:", error);
-        return null;
+export async function getGroupsByAcademy({ academyId }) {
+    const courses = await getCoursesByAcademy({ academyId }); // ✅ await here
+    const groups = [];
+
+    for (let i = 0; i < courses.length; i++) {
+        const course = courses[i];
+        const groupsByCourse = await getGroupsByCourse({ courseId: course.id });
+        groups.push(...groupsByCourse);
     }
+
+    return groups;
 }
+
 export async function createGroup({name,courseId}){
     const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
@@ -952,8 +941,6 @@ export async function getGroupsByCourse({courseId}){
     }
 }
 
-
-
 export async function getAllTeachers() {
     const academies = await getAllAcademies(); // add const
     let count = 0;
@@ -979,12 +966,6 @@ export async function getAllStudents() {
 
 
 //sections
-// {
-//     "name": "Introduction",
-//     "description": "This is the introduction section",
-//     "order": 1,
-//     "chapterId": 1
-//   }
 export async function createSection({name,description,order,chapterId}){
     const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
@@ -1083,6 +1064,545 @@ export async function deleteSection({sectionId}){
         return result;
     } catch (error) {
         console.error("Error deleting section:", error);
+        return null;
+    }
+}
+
+
+//seances
+export async function createSeance({
+    title,
+    date,
+    startTime,
+    endTime,
+    notes,
+    meetingUrl,
+    mode,
+    groupId,
+    teacherId,
+    chapterId,
+  }) {
+    const API_BASE = import.meta.env.PROD
+      ? import.meta.env.VITE_API_URL
+      : "/api";
+  
+    const payload = {
+      title,
+      date,
+      startTime,
+      endTime,
+      notes,
+      meetingUrl,
+      mode,
+      groupId,
+      teacherId,
+      chapterId,
+    };
+  
+    console.log("[createSeance] API_BASE:", API_BASE);
+    console.log("[createSeance] Payload:", payload);
+  
+    try {
+      const response = await fetch(`${API_BASE}/seances`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      console.log("[createSeance] Response status:", response.status);
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[createSeance] Failed response body:", errorText);
+        throw new Error(`Failed to create seance. Status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      console.log("[createSeance] Success:", result);
+  
+      return result;
+    } catch (error) {
+      console.error("[createSeance] Error:", error);
+      return null;
+    }
+  }
+  
+
+export async function getAllSeance(){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/seances`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch seances");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching seances:", error);
+        return null;
+    }
+}
+
+export async function getSeanceByGroup({groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/seances/group/${groupId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch seances by group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching seances by group:", error);
+        return null;
+    }
+}
+
+export async function getSeanceByTeacher({teacherId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/seances/teacher/${teacherId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch seances by teacher");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching seances by teacher:", error);
+        return null;
+    }
+}
+
+export async function getSeanceById({seanceId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/seances/${seanceId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch seance by ID");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching seance by ID:", error);
+        return null;
+    }
+}
+
+export async function updateSeance({seanceId,title,date,startTime,endTime,notes,meetingUrl,mode,groupId,teacherId,chapterId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/seances/${seanceId}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title,date,startTime,endTime,notes,meetingUrl,mode,groupId,teacherId,chapterId })
+        });
+        if (!response.ok) throw new Error("Failed to update seance");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating seance:", error);
+        return null;
+    }
+}
+
+export async function deleteSeance({seanceId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/seances/${seanceId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to delete seance");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error deleting seance:", error);
+        return null;
+    }
+}
+
+//attendance
+
+export async function createAttendance({seanceId,userId,status}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/attendance`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ seanceId,userId,status })
+        });
+        if (!response.ok) throw new Error("Failed to create attendance");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating attendance:", error);
+        return null;
+    }
+}
+
+export async function getAllAttendance(){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/attendance`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch attendance");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching attendance:", error);
+        return null;
+    }
+}
+
+export async function getAttendanceBySeanceUser({seanceId,userId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/attendance/seance/${seanceId}/user/${userId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch attendance by seance user");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching attendance by seance user:", error);
+        return null;
+    }
+}
+
+export async function updateAttendanceBySeanceUser({seanceId,userId,status}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/attendance/seance/${seanceId}/user/${userId}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status })
+        });
+        if (!response.ok) throw new Error("Failed to update attendance by seance user");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating attendance by seance user:", error);
+        return null;
+    }
+}
+
+export async function deleteAttendanceBySeanceUser({seanceId,userId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/attendance/seance/${seanceId}/user/${userId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to delete attendance by seance user");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error deleting attendance by seance user:", error);
+        return null;
+    }
+}
+
+export async function getAttendacesBySeance({seanceId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/attendance/seance/${seanceId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch attendance by seance");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching attendance by seance:", error);
+        return null;
+    }
+}
+
+export async function getAttendacesByUser({userId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/attendance/user/${userId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch attendance by user");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching attendance by user:", error);
+        return null;
+    }
+}
+
+
+export async function createExam({ name, dateTime, duration, groupId }) {
+    const API_BASE = import.meta.env.PROD
+      ? import.meta.env.VITE_API_URL
+      : "/api";
+  
+    try {
+      const payload = {
+        name,
+        dateTime,
+        duration: Number(duration), // ✅ ensure integer
+        groupId: Number(groupId),   // ✅ ensure integer
+      };
+  
+      console.log("📤 Sending Exam Payload:", payload);
+  
+      const response = await fetch(`${API_BASE}/exams`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      console.log("📥 Raw response status:", response.status);
+      const rawBody = await response.text();
+      console.log("📥 Raw response body:", rawBody);
+  
+      if (!response.ok) throw new Error(`Failed to create exam. Status: ${response.status}, Body: ${rawBody}`);
+  
+      const result = JSON.parse(rawBody);
+      console.log("✅ Parsed result:", result);
+  
+      return result;
+    } catch (error) {
+      console.error("❌ Error creating exam:", error);
+      return null;
+    }
+}
+  
+  
+
+export async function getAllExams(){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/exams`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch exams");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching exams:", error);
+        return null;
+    }
+}
+
+export async function getExamById({examId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/exams/${examId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch exam by ID");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching exam by ID:", error);
+        return null;
+    }
+}
+
+export async function updateExam({examId,name,dateTime,duration,groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/exams/${examId}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name,dateTime,duration,groupId })
+        });
+        if (!response.ok) throw new Error("Failed to update exam");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating exam:", error);
+        return null;
+    }
+}
+
+export async function deleteExam({examId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/exams/${examId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to delete exam");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error deleting exam:", error);
+        return null;
+    }
+}
+
+export async function getExamsByGroup({groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/exams/group/${groupId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch exams by group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching exams by group:", error);
+        return null;
+    }
+}
+
+export async function updateOrCreateGradeForUser({ examId, UserId, grade }) {
+    const API_BASE = import.meta.env.PROD
+      ? import.meta.env.VITE_API_URL
+      : "/api";
+  
+    try {
+      const payload = { grade }; // ✅ include grade value
+      console.log("📤 Sending grade payload:", { examId, UserId, payload });
+  
+      const response = await fetch(`${API_BASE}/exams/${examId}/grade/${UserId}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      console.log("📥 Raw response status:", response.status);
+      const rawBody = await response.text();
+      console.log("📥 Raw response body:", rawBody);
+  
+      if (!response.ok) {
+        throw new Error(`Failed to update/create grade. Status: ${response.status}, Body: ${rawBody}`);
+      }
+  
+      const result = JSON.parse(rawBody);
+      console.log("✅ Parsed result:", result);
+      return result;
+    } catch (error) {
+      console.error("❌ Error updating or creating grade for user:", error);
+      return null;
+    }
+}
+  
+
+export async function getAllGradsByUser({userId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/exams/user/${userId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch grades by user");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching grades by user:", error);
+        return null;
+    }
+}
+
+export async function getLevelOfUserByModule({userId,moduleId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/exams/module-level/${moduleId}/${userId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch level of user by module");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching level of user by module:", error);
         return null;
     }
 }

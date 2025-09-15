@@ -280,6 +280,7 @@ export default function CoursesAdmin() {
             </select>
 
             <input
+              type="file"
               name="cover"
               value={formData.cover}
               onChange={handleChange}

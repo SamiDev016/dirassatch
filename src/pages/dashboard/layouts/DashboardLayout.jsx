@@ -172,6 +172,12 @@ export default function DashboardLayout() {
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/sections`} icon={MousePointerBanIcon}>
                   Sections
                 </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/seances`} icon={BookOpen}>
+                  Seances
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/exams`} icon={BookOpen}>
+                  Exams
+                </NavLink>
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/settings`} icon={Settings}>
                   Settings
                 </NavLink>

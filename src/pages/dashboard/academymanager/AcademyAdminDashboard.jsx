@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getUserData, getCoursesByAcademy, getGroupsByAcademy } from '../../../utils/auth';
+import { getUserData, getCoursesByAcademy, getStudentsByAcademy, getGroupsByAcademy, getAllModules } from '../../../utils/auth';
 import { BookOpen, Users, Layers, Settings, GraduationCap, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function AcademyAdminDashboard() {
@@ -42,12 +42,16 @@ export default function AcademyAdminDashboard() {
             // Fetch groups
             const groups = await getGroupsByAcademy({ academyId });
             
+            // Fetch students
+            const students = await getStudentsByAcademy({ academyId });
+            
+            const modules = await getAllModules();
             // Set stats with real data and some placeholder data
             setStats({
                 courses: courses?.length || 0,
                 groups: groups?.length || 0,
-                students: 120, // Placeholder
-                modules: 15 // Placeholder
+                students: students?.length || 0,
+                modules: modules?.length || 0
             });
         } catch (error) {
             console.error('Error fetching dashboard data:', error);

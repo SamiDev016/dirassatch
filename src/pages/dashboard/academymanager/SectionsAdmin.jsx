@@ -52,12 +52,13 @@ export default function SectionsAdmin() {
 
   const fetchChapters = async (courseId) => {
     try {
-      const data = await getChaptersByCourse({ courseId }); // ✅ FIXED
+      const data = await getChaptersByCourse({ id: courseId });
       setChapters(data || []);
     } catch (err) {
       console.error("Error fetching chapters:", err);
     }
   };
+  
 
   const fetchSections = async (chapterId) => {
     try {

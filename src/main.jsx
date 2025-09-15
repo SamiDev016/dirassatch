@@ -31,6 +31,8 @@ import ManageAcademies from './pages/dashboard/superadmin/ManageAcademies.jsx'
 import TeachersAdmin from './pages/dashboard/academymanager/TeachersAdmin.jsx'
 import StudentsAdmin from './pages/dashboard/academymanager/StudentsAdmin.jsx'
 import SectionsAdmin from './pages/dashboard/academymanager/SectionsAdmin.jsx'
+import SeancesAdmin from './pages/dashboard/academymanager/SeanceAdmin.jsx'
+import ExamsAdmin from './pages/dashboard/academymanager/ExamsAdmin.jsx'
 
 
 
@@ -173,6 +175,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["manager", "owner"]}>
             <SectionsAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/seances',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <SeancesAdmin />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'academy/:academyId/admin/exams',
+        element: (
+          <ProtectedRoute allowedRoles={["manager", "owner"]}>
+            <ExamsAdmin />
           </ProtectedRoute>
         ),
       },
