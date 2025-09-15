@@ -104,8 +104,8 @@ export default function ChaptersAdmin() {
       </div>
 
       {/* Course Selector */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+      <div className="bg-white rounded-lg p-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Course
         </label>
         <select
@@ -114,7 +114,7 @@ export default function ChaptersAdmin() {
             setSelectedCourse(e.target.value);
             fetchChapters(e.target.value);
           }}
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full border border-gray-200 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
         >
           <option value="">-- Choose a course --</option>
           {courses.map((c) => (
@@ -127,120 +127,154 @@ export default function ChaptersAdmin() {
 
       {/* Chapters List */}
       {selectedCourse && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-slate-800">Chapters</h2>
+        <div className="bg-white rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-800">Chapters</h2>
             <button
               onClick={() => {
                 setFormData({ id: null, name: "", description: "", order: 1, isPublished: false });
                 setIsDialogOpen(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
             >
               <Plus className="w-4 h-4" /> Add Chapter
             </button>
           </div>
 
           {chapters.length === 0 ? (
-            <p className="text-slate-500 text-sm">No chapters found for this course.</p>
+            <div className="p-8 text-center">
+              <p className="text-gray-500 text-sm">No chapters found for this course.</p>
+            </div>
           ) : (
-            <ul className="divide-y divide-slate-200">
-              {chapters.map((ch) => (
-                <li
-                  key={ch.id}
-                  className="py-4 flex justify-between items-start"
-                >
-                  <div>
-                    <h3 className="font-semibold text-slate-900">{ch.name}</h3>
-                    <p className="text-sm text-slate-600">{ch.description}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Order: {ch.order} |{" "}
-                      {ch.isPublished ? (
-                        <span className="text-green-600 font-medium">Published</span>
-                      ) : (
-                        <span className="text-red-500 font-medium">Draft</span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setFormData(ch);
-                        setIsDialogOpen(true);
-                      }}
-                      className="flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 text-blue-600 text-sm"
-                    >
-                      <Edit className="w-4 h-4" /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(ch.id)}
-                      className="flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 hover:bg-red-50 text-red-600 text-sm"
-                    >
-                      <Trash className="w-4 h-4" /> Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chapter</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {chapters.map((ch) => (
+                    <tr key={ch.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900">{ch.name}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-gray-600 max-w-xs truncate">{ch.description}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-gray-900">{ch.order}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                          ch.isPublished 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {ch.isPublished ? 'Published' : 'Draft'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setFormData(ch);
+                              setIsDialogOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          >
+                            <Edit className="w-3 h-3" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(ch.id)}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          >
+                            <Trash className="w-3 h-3" /> Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
 
       {/* Modal */}
       {isDialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-slate-900">
-              {formData.id ? "Edit Chapter" : "New Chapter"}
-            </h2>
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Chapter Name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <textarea
-                placeholder="Description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Order"
-                value={formData.order}
-                onChange={(e) =>
-                  setFormData({ ...formData, order: parseInt(e.target.value) })
-                }
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <label className="flex items-center gap-2 text-sm text-slate-700">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {formData.id ? "Edit Chapter" : "New Chapter"}
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Chapter Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter chapter name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  placeholder="Enter description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  rows={3}
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                <input
+                  type="number"
+                  placeholder="Enter order"
+                  value={formData.order}
+                  onChange={(e) =>
+                    setFormData({ ...formData, order: parseInt(e.target.value) })
+                  }
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                />
+              </div>
+              <div className="flex items-center">
                 <input
                   type="checkbox"
+                  id="published"
                   checked={formData.isPublished}
                   onChange={(e) =>
                     setFormData({ ...formData, isPublished: e.target.checked })
                   }
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                Published
-              </label>
+                <label htmlFor="published" className="ml-2 text-sm text-gray-700">
+                  Published
+                </label>
+              </div>
             </div>
-
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
               <button
                 onClick={() => setIsDialogOpen(false)}
-                className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
               >
                 Save
               </button>

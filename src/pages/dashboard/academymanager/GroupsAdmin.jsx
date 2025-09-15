@@ -8,11 +8,16 @@ import {
   removeMemberFromGroup,
   getAllMembersOfGroup,
   getCoursesByAcademy,
+  getUserByEmail,
+  getUserById,
+  getGroupByID,
+  getEnrollmentRequestsByCourse,
+  acceptEnrollmentRequest,
 } from "../../../utils/auth";
 import {
   Users,
   UserPlus,
-  Edit,
+  Edit, 
   Trash2,
   BookOpen,
   PlusCircle,
@@ -29,8 +34,14 @@ export default function GroupsAdmin() {
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [members, setMembers] = useState([]);
+  const [memberDetails, setMemberDetails] = useState([]);
+  const [enrollmentRequests, setEnrollmentRequests] = useState([]);
+  const [selectedGroupDetails, setSelectedGroupDetails] = useState(null);
+  const [showGroupSelectionModal, setShowGroupSelectionModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
   const [formData, setFormData] = useState({ id: null, name: "", courseId: "" });
-  const [memberForm, setMemberForm] = useState({ userId: "", role: "STUDENT" });
+  const [memberForm, setMemberForm] = useState({ email: "", role: "STUDENT" });
   const [loading, setLoading] = useState(false);
   const [academyId, setAcademyId] = useState(null);
 
@@ -105,19 +116,61 @@ export default function GroupsAdmin() {
 
   async function handleSelectGroup(group) {
     setSelectedGroup(group);
+    
+    // Fetch group details
+    const groupDetails = await getGroupByID({ id: group.id });
+    if (groupDetails) {
+      setSelectedGroupDetails(groupDetails);
+    }
+    
+    // Fetch group members
     const members = await getAllMembersOfGroup({ groupId: group.id });
-    if (members) setMembers(members);
+    if (members) {
+      setMembers(members);
+      
+      // Fetch user details for each member
+      const details = await Promise.all(
+        members.map(async (member) => {
+          const user = await getUserById(member.userId);
+          return user;
+        })
+      );
+      setMemberDetails(details);
+    }
+    
+    // Fetch enrollment requests for the course
+    if (groupDetails && groupDetails.courseId) {
+      const requests = await getEnrollmentRequestsByCourse({ courseId: groupDetails.courseId });
+      if (requests) {
+        setEnrollmentRequests(requests);
+      }
+    }
   }
 
   async function handleAddMember(e) {
     e.preventDefault();
     if (!selectedGroup) return;
+    
+    // Get user by email first
+    const user = await getUserByEmail(memberForm.email);
+    if (!user) {
+      alert("User not found with this email");
+      return;
+    }
+    
+    console.log("User found:", user);
+    console.log("User ID:", user.userId, "Type:", typeof user.userId);
+    console.log("User ID as number:", Number(user.userId), "Type:", typeof Number(user.userId));
+    
+    const userId = parseInt(user.userId, 10);
+    console.log("User ID parsed with parseInt:", userId, "Type:", typeof userId);
+    
     await addMemberToGroup({
-      userId: Number(memberForm.userId),
+      userId: userId,
       groupId: selectedGroup.id,
       role: memberForm.role,
     });
-    setMemberForm({ userId: "", role: "STUDENT" });
+    setMemberForm({ email: "", role: "STUDENT" });
     handleSelectGroup(selectedGroup);
   }
 
@@ -125,6 +178,59 @@ export default function GroupsAdmin() {
     if (!selectedGroup) return;
     await removeMemberFromGroup({ userId, groupId: selectedGroup.id });
     handleSelectGroup(selectedGroup);
+  }
+
+  async function handleAcceptEnrollment(request) {
+    setSelectedRequest(request);
+    setSelectedGroupId("");
+    setShowGroupSelectionModal(true);
+  }
+
+  async function handleConfirmGroupSelection() {
+    if (!selectedRequest || !selectedGroupId) {
+      alert("Please select a group");
+      return;
+    }
+
+    try {
+      // Accept the enrollment request
+      const acceptResult = await acceptEnrollmentRequest({ id: selectedRequest.id });
+      
+      if (acceptResult) {
+        // Add the student to the selected group
+        // Note: We need to get the student ID from the request
+        const studentId = selectedRequest.studentId || selectedRequest.userId;
+        if (studentId) {
+          await addMemberToGroup({
+            userId: parseInt(studentId, 10),
+            groupId: parseInt(selectedGroupId, 10),
+            role: "STUDENT"
+          });
+        }
+        
+        // Remove the accepted request from local state
+        setEnrollmentRequests(prevRequests => 
+          prevRequests.filter(request => request.id !== selectedRequest.id)
+        );
+        
+        // Close modal and reset state
+        setShowGroupSelectionModal(false);
+        setSelectedRequest(null);
+        setSelectedGroupId("");
+        
+        alert("Enrollment request accepted and student added to group successfully!");
+        
+        // Refresh the selected group if it's the one we added to
+        if (selectedGroup && selectedGroup.id === parseInt(selectedGroupId, 10)) {
+          handleSelectGroup(selectedGroup);
+        }
+      } else {
+        alert("Failed to accept enrollment request");
+      }
+    } catch (error) {
+      console.error("Error processing enrollment request:", error);
+      alert("Failed to process enrollment request");
+    }
   }
 
   return (
@@ -341,14 +447,14 @@ export default function GroupsAdmin() {
             >
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  User ID
+                  User Email
                 </label>
                 <input
-                  type="number"
-                  placeholder="Enter user ID"
-                  value={memberForm.userId}
+                  type="email"
+                  placeholder="Enter user email"
+                  value={memberForm.email}
                   onChange={(e) =>
-                    setMemberForm({ ...memberForm, userId: e.target.value })
+                    setMemberForm({ ...memberForm, email: e.target.value })
                   }
                   className="border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                   required
@@ -398,48 +504,189 @@ export default function GroupsAdmin() {
                     {members.length} member{members.length !== 1 ? "s" : ""}
                   </span>
                 </div>
-                {members.map((m) => (
+                {members.map((m, index) => {
+                  const userDetail = memberDetails[index];
+                  return (
+                    <div
+                      key={m.userId}
+                      className="border border-gray-200 rounded-lg p-3 flex justify-between items-center hover:border-red-200 hover:shadow-sm transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="bg-gray-100 rounded-full p-2">
+                          <User className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {userDetail ? `${userDetail.firstName} ${userDetail.lastName}` : `User ID: ${m.userId}`}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {userDetail && <span>{userDetail.email}</span>}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {m.role === "TEACHER" ? (
+                              <span className="text-green-600 font-medium flex items-center gap-1">
+                                <BookOpen className="h-3.5 w-3.5" /> Teacher
+                              </span>
+                            ) : m.role === "ASSISTANT" ? (
+                              <span className="text-blue-600 font-medium flex items-center gap-1">
+                                <UserCheck className="h-3.5 w-3.5" /> Assistant
+                              </span>
+                            ) : (
+                              <span className="text-gray-600 font-medium flex items-center gap-1">
+                                <User className="h-3.5 w-3.5" /> Student
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-colors duration-200 flex items-center gap-1"
+                        onClick={() => handleRemoveMember(m.userId)}
+                        title="Remove Member"
+                      >
+                        <UserX className="h-4 w-4" />
+                        <span className="hidden sm:inline">Remove</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Enrollment Requests Management */}
+      {selectedGroup && selectedGroupDetails && (
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-green-600" />
+              Enrollment Requests for {selectedGroup.name}
+            </h2>
+            <span className="text-sm text-gray-500">
+              {enrollmentRequests.length} request{enrollmentRequests.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          <div className="p-4">
+            {enrollmentRequests.length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                <UserCheck className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                <p className="text-gray-700 font-medium">
+                  No enrollment requests
+                </p>
+                <p className="text-gray-500 text-sm mt-1">
+                  All enrollment requests have been processed
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {enrollmentRequests.map((request) => (
                   <div
-                    key={m.userId}
-                    className="border border-gray-200 rounded-lg p-3 flex justify-between items-center hover:border-red-200 hover:shadow-sm transition-all duration-200"
+                    key={request.id}
+                    className="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:border-green-200 hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="bg-gray-100 rounded-full p-2">
-                        <User className="h-5 w-5 text-gray-600" />
+                      <div className="bg-green-100 rounded-full p-2">
+                        <UserPlus className="h-5 w-5 text-green-600" />
                       </div>
                       <div>
                         <p className="font-medium text-gray-800">
-                          User ID: {m.userId}
+                          {request.studentName || request.studentEmail || `Student ID: ${request.studentId || request.userId || 'Unknown'}`}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {m.role === "TEACHER" ? (
-                            <span className="text-green-600 font-medium flex items-center gap-1">
-                              <BookOpen className="h-3.5 w-3.5" /> Teacher
-                            </span>
-                          ) : m.role === "ASSISTANT" ? (
-                            <span className="text-blue-600 font-medium flex items-center gap-1">
-                              <UserCheck className="h-3.5 w-3.5" /> Assistant
-                            </span>
-                          ) : (
-                            <span className="text-gray-600 font-medium flex items-center gap-1">
-                              <User className="h-3.5 w-3.5" /> Student
-                            </span>
-                          )}
+                          {request.studentEmail && request.studentName && <span>{request.studentEmail}</span>}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Requested: {request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'Unknown date'}
                         </p>
                       </div>
                     </div>
                     <button
-                      className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-colors duration-200 flex items-center gap-1"
-                      onClick={() => handleRemoveMember(m.userId)}
-                      title="Remove Member"
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2 shadow-sm"
+                      onClick={() => handleAcceptEnrollment(request)}
+                      title="Accept Request"
                     >
-                      <UserX className="h-4 w-4" />
-                      <span className="hidden sm:inline">Remove</span>
+                      <UserCheck className="h-4 w-4" />
+                      Accept
                     </button>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Group Selection Modal */}
+      {showGroupSelectionModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-green-600" />
+                  Select Group for Enrollment
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowGroupSelectionModal(false);
+                    setSelectedRequest(null);
+                    setSelectedGroupId("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Student:</p>
+                <p className="font-medium text-gray-800">
+                  {selectedRequest.studentName || selectedRequest.studentEmail || `Student ID: ${selectedRequest.studentId || selectedRequest.userId || 'Unknown'}`}
+                </p>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Group to Add Student:
+                </label>
+                <select
+                  value={selectedGroupId}
+                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                >
+                  <option value="">Choose a group...</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setShowGroupSelectionModal(false);
+                    setSelectedRequest(null);
+                    setSelectedGroupId("");
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmGroupSelection}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2"
+                  disabled={!selectedGroupId}
+                >
+                  <UserCheck className="h-4 w-4" />
+                  Accept & Add to Group
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

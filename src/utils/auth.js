@@ -636,27 +636,35 @@ export async function createCourse({
     maxAge,
     price,
     chapters,
+    coverFile, // Add file parameter
   }) {
     const API_BASE = import.meta.env.PROD
       ? import.meta.env.VITE_API_URL
       : "/api";
   
     try {
-      // Build payload as Swagger expects
-      const payload = {
-        cover: cover || "",
-        academyId: academyId ? Number(academyId) : null,
-        moduleId: moduleId ? Number(moduleId) : null,
-        name: name || "",
-        description: description || "",
-        targetAudience: targetAudience || "",
-        prerequisites: prerequisites || "",
-        whatYouWillLearn: whatYouWillLearn || "",
-        whatYouCanDoAfter: whatYouCanDoAfter || "",
-        minAge: minAge ? Number(minAge) : null,
-        maxAge: maxAge ? Number(maxAge) : null,
-        price: price ? Number(price) : 0,
-        chapters: JSON.stringify(
+      // If there's a file, use FormData for multipart upload
+      if (coverFile) {
+        const formData = new FormData();
+        
+        // Append the file
+        formData.append('cover', coverFile);
+        
+        // Append other fields as strings
+        formData.append('academyId', academyId ? String(academyId) : '');
+        formData.append('moduleId', moduleId ? String(moduleId) : '');
+        formData.append('name', name || '');
+        formData.append('description', description || '');
+        formData.append('targetAudience', targetAudience || '');
+        formData.append('prerequisites', prerequisites || '');
+        formData.append('whatYouWillLearn', whatYouWillLearn || '');
+        formData.append('whatYouCanDoAfter', whatYouCanDoAfter || '');
+        formData.append('minAge', minAge ? String(minAge) : '');
+        formData.append('maxAge', maxAge ? String(maxAge) : '');
+        formData.append('price', price ? String(price) : '0');
+        
+        // Append chapters as JSON string
+        const chaptersData = JSON.stringify(
           Array.isArray(chapters)
             ? chapters.map((ch, index) => ({
                 name: ch.title,
@@ -664,39 +672,96 @@ export async function createCourse({
                 order: index + 1,
               }))
             : []
-        ),
-      };
-  
-      console.log("🚀 createCourse final payload:", payload);
-  
-      const response = await fetch(`${API_BASE}/course/create`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-  
-      console.log("🚀 createCourse raw response:", response);
-  
-      const resultText = await response.text();
-      console.log("🚀 createCourse response text:", resultText);
-  
-      let result;
-      try {
-        result = JSON.parse(resultText);
-      } catch {
-        result = resultText;
-      }
-  
-      if (!response.ok) {
-        throw new Error(
-          `Failed to create course. Status: ${response.status}, Response: ${resultText}`
         );
+        formData.append('chapters', chaptersData);
+        
+        console.log("🚀 createCourse FormData payload:", Object.fromEntries(formData));
+        
+        const response = await fetch(`${API_BASE}/course/create`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+            // Don't set Content-Type header when using FormData, browser will set it automatically with boundary
+          },
+          body: formData,
+        });
+        
+        console.log("🚀 createCourse raw response:", response);
+        
+        const resultText = await response.text();
+        console.log("🚀 createCourse response text:", resultText);
+        
+        let result;
+        try {
+          result = JSON.parse(resultText);
+        } catch {
+          result = resultText;
+        }
+        
+        if (!response.ok) {
+          throw new Error(
+            `Failed to create course. Status: ${response.status}, Response: ${resultText}`
+          );
+        }
+        
+        return result;
+      } else {
+        // If no file, use the original JSON approach
+        const payload = {
+          cover: cover || "",
+          academyId: academyId ? Number(academyId) : null,
+          moduleId: moduleId ? Number(moduleId) : null,
+          name: name || "",
+          description: description || "",
+          targetAudience: targetAudience || "",
+          prerequisites: prerequisites || "",
+          whatYouWillLearn: whatYouWillLearn || "",
+          whatYouCanDoAfter: whatYouCanDoAfter || "",
+          minAge: minAge ? Number(minAge) : null,
+          maxAge: maxAge ? Number(maxAge) : null,
+          price: price ? Number(price) : 0,
+          chapters: JSON.stringify(
+            Array.isArray(chapters)
+              ? chapters.map((ch, index) => ({
+                  name: ch.title,
+                  description: ch.content,
+                  order: index + 1,
+                }))
+              : []
+          ),
+        };
+        
+        console.log("🚀 createCourse final payload:", payload);
+        
+        const response = await fetch(`${API_BASE}/course/create`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        
+        console.log("🚀 createCourse raw response:", response);
+        
+        const resultText = await response.text();
+        console.log("🚀 createCourse response text:", resultText);
+        
+        let result;
+        try {
+          result = JSON.parse(resultText);
+        } catch {
+          result = resultText;
+        }
+        
+        if (!response.ok) {
+          throw new Error(
+            `Failed to create course. Status: ${response.status}, Response: ${resultText}`
+          );
+        }
+        
+        return result;
       }
-  
-      return result;
     } catch (error) {
       console.error("❌ Error creating course:", error);
       return null;
@@ -1603,6 +1668,46 @@ export async function getLevelOfUserByModule({userId,moduleId}){
         return result;
     } catch (error) {
         console.error("Error fetching level of user by module:", error);
+        return null;
+    }
+}
+
+//enrollment request
+export async function getEnrollmentRequestsByCourse({courseId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/enrollment-request/course/${courseId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch enrollment requests by course");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching enrollment requests by course:", error);
+        return null;
+    }
+}
+
+export async function acceptEnrollmentRequest({id}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/enrollment-request/${id}/accept`, {
+            method: "PATCH",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to accept enrollment request");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error accepting enrollment request:", error);
         return null;
     }
 }

@@ -29,6 +29,7 @@ export default function CoursesAdmin() {
 
   const [chapters, setChapters] = useState([{ title: "", content: "" }]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("selectedAcademyId");
@@ -67,6 +68,16 @@ export default function CoursesAdmin() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      // For preview purposes, create a URL
+      const previewUrl = URL.createObjectURL(file);
+      setFormData((prev) => ({ ...prev, cover: previewUrl }));
+    }
+  };
+
   const handleChapterChange = (index, field, value) => {
     const updated = [...chapters];
     updated[index][field] = value;
@@ -87,6 +98,7 @@ export default function CoursesAdmin() {
         maxAge: formData.maxAge,
         price: formData.price,
         chapters, // pass array, not stringified
+        coverFile: selectedFile, // Add the actual file object
       };
   
       await createCourse(payload);
@@ -107,6 +119,7 @@ export default function CoursesAdmin() {
         maxAge: "",
         price: "",
       });
+      setSelectedFile(null);
       setChapters([{ title: "", content: "" }]);
       fetchCourses();
     } catch (error) {
@@ -191,9 +204,9 @@ export default function CoursesAdmin() {
               className="rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-white flex flex-col transform transition-all hover:shadow-xl hover:border-blue-200 duration-300"
             >
               <div className="relative">
-                {course.cover ? (
+                {course.coverPhoto ? (
                   <img
-                    src={course.cover}
+                    src={course.coverPhoto}
                     alt={course.name}
                     className="w-full h-48 object-cover"
                   />
@@ -221,7 +234,7 @@ export default function CoursesAdmin() {
                     <Users size={16} /> {course.targetAudience}
                   </p>
                   <p className="flex items-center gap-1">
-                    <DollarSign size={16} /> {course.price} DZ
+                    {course.price} DZ
                   </p>
                 </div>
               </div>
@@ -232,182 +245,250 @@ export default function CoursesAdmin() {
 
       {/* Dialog / Modal */}
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center p-4  bg-opacity-50 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300 ease-out ${
           isDialogOpen
-            ? "opacity-100 bg-opacity-40 transition-opacity duration-300"
-            : "opacity-0 pointer-events-none"
+            ? "opacity-100 bg-black/20 backdrop-blur-md"
+            : "opacity-0 pointer-events-none bg-transparent backdrop-blur-none"
         }`}
+        onClick={(e) => e.target === e.currentTarget && setIsDialogOpen(false)}
       >
         <div
-          className={`bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all duration-300 ${
-            isDialogOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          className={`bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all duration-500 ease-out ${
+            isDialogOpen ? "scale-100 opacity-100 translate-y-0" : "scale-90 opacity-0 translate-y-8"
           }`}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
-            <h2 className="text-xl font-bold">Create Course</h2>
+          <div className="flex justify-between items-center p-6 border-b border-gray-200/50 sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">Create Course</h2>
+            </div>
             <button
               onClick={() => setIsDialogOpen(false)}
-              className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:rotate-90"
             >
-              <X size={20} />
+              <X className="h-5 w-5 text-gray-600" />
             </button>
           </div>
 
           {/* Body */}
-          <div className="p-4 overflow-y-auto space-y-3 flex-1">
-            <input
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Course Name"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-
-            <select
-              value={formData.moduleId}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, moduleId: e.target.value }))
-              }
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            >
-              <option value="">Select Module</option>
-              {modules.map((module) => (
-                <option key={module.id} value={String(module.id)}>
-                  {module.name}
-                </option>
-              ))}
-            </select>
-
-            <input
-              type="file"
-              name="cover"
-              value={formData.cover}
-              onChange={handleChange}
-              placeholder="Cover Image URL"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Description"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-            <input
-              name="targetAudience"
-              value={formData.targetAudience}
-              onChange={handleChange}
-              placeholder="Target Audience"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-            <input
-              name="prerequisites"
-              value={formData.prerequisites}
-              onChange={handleChange}
-              placeholder="Prerequisites"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-            <input
-              name="whatYouWillLearn"
-              value={formData.whatYouWillLearn}
-              onChange={handleChange}
-              placeholder="What You Will Learn"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-            <input
-              name="whatYouCanDoAfter"
-              value={formData.whatYouCanDoAfter}
-              onChange={handleChange}
-              placeholder="What You Can Do After"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
-
-            <div className="flex gap-2">
+          <div className="p-6 overflow-y-auto space-y-4 flex-1">
+            <div className="group">
               <input
-                type="number"
-                name="minAge"
-                value={formData.minAge}
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
-                placeholder="Min Age"
-                className="border rounded p-2 w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-              />
-              <input
-                type="number"
-                name="maxAge"
-                value={formData.maxAge}
-                onChange={handleChange}
-                placeholder="Max Age"
-                className="border rounded p-2 w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                placeholder="Course Name"
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
               />
             </div>
 
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              placeholder="Price"
-              className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            />
+            <div className="group">
+              <select
+                value={formData.moduleId}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, moduleId: e.target.value }))
+                }
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 text-gray-700 hover:bg-gray-100"
+              >
+                <option value="" className="text-gray-500">Select Module</option>
+                {modules.map((module) => (
+                  <option key={module.id} value={String(module.id)}>
+                    {module.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="group">
+              <input
+                type="file"
+                name="cover"
+                onChange={handleFileChange}
+                accept="image/*"
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 hover:bg-gray-100"
+              />
+              {selectedFile && (
+                <div className="mt-2 text-sm text-gray-600">
+                  Selected file: {selectedFile.name}
+                </div>
+              )}
+              {formData.cover && !selectedFile && (
+                <div className="mt-2">
+                  <img 
+                    src={formData.cover} 
+                    alt="Preview" 
+                    className="w-full h-32 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div className="group">
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Description"
+                rows={3}
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100 resize-none"
+              />
+            </div>
+            
+            <div className="group">
+              <input
+                name="targetAudience"
+                value={formData.targetAudience}
+                onChange={handleChange}
+                placeholder="Target Audience"
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
+              />
+            </div>
+            
+            <div className="group">
+              <input
+                name="prerequisites"
+                value={formData.prerequisites}
+                onChange={handleChange}
+                placeholder="Prerequisites"
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
+              />
+            </div>
+            
+            <div className="group">
+              <input
+                name="whatYouWillLearn"
+                value={formData.whatYouWillLearn}
+                onChange={handleChange}
+                placeholder="What You Will Learn"
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
+              />
+            </div>
+            
+            <div className="group">
+              <input
+                name="whatYouCanDoAfter"
+                value={formData.whatYouCanDoAfter}
+                onChange={handleChange}
+                placeholder="What You Can Do After"
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="group">
+                <input
+                  type="number"
+                  name="minAge"
+                  value={formData.minAge}
+                  onChange={handleChange}
+                  placeholder="Min Age"
+                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
+                />
+              </div>
+              <div className="group">
+                <input
+                  type="number"
+                  name="maxAge"
+                  value={formData.maxAge}
+                  onChange={handleChange}
+                  placeholder="Max Age"
+                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
+                />
+              </div>
+            </div>
+
+            <div className="group">
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                placeholder="Price"
+                className="w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 hover:bg-gray-100"
+              />
+            </div>
 
             {/* Chapters */}
-            <div className="mt-4">
-              <h3 className="font-semibold mb-2">Chapters</h3>
-              {chapters.map((chapter, index) => (
-                <div
-                  key={index}
-                  className="mb-3 bg-gray-50 p-3 rounded-lg border space-y-2 transform transition-all duration-200 hover:scale-[1.01]"
-                >
-                  <input
-                    type="text"
-                    value={chapter.title}
-                    onChange={(e) =>
-                      handleChapterChange(index, "title", e.target.value)
-                    }
-                    placeholder="Chapter Title"
-                    className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                  />
-                  <textarea
-                    value={chapter.content}
-                    onChange={(e) =>
-                      handleChapterChange(index, "content", e.target.value)
-                    }
-                    placeholder="Chapter Content"
-                    className="border rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeChapter(index)}
-                    className="flex items-center gap-1 text-red-600 text-sm hover:text-red-800 transition"
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                  Chapters
+                </h3>
+                <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  {chapters.length} {chapters.length === 1 ? 'chapter' : 'chapters'}
+                </span>
+              </div>
+              
+              <div className="space-y-3">
+                {chapters.map((chapter, index) => (
+                  <div
+                    key={index}
+                    className="group relative bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-2xl border border-gray-200 space-y-3 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md hover:border-blue-300"
                   >
-                    <Trash2 size={14} /> Remove
-                  </button>
-                </div>
-              ))}
+                    <div className="absolute top-3 left-3 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      {index + 1}
+                    </div>
+                    <div className="pl-10">
+                      <input
+                        type="text"
+                        value={chapter.title}
+                        onChange={(e) =>
+                          handleChapterChange(index, "title", e.target.value)
+                        }
+                        placeholder="Chapter Title"
+                        className="w-full px-3 py-2 bg-white/80 rounded-lg border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 text-sm font-medium"
+                      />
+                      <textarea
+                        value={chapter.content}
+                        onChange={(e) =>
+                          handleChapterChange(index, "content", e.target.value)
+                        }
+                        placeholder="Chapter Content"
+                        rows={3}
+                        className="w-full px-3 py-2 bg-white/80 rounded-lg border-0 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 text-gray-700 text-sm mt-2 resize-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeChapter(index)}
+                      className="absolute top-3 right-3 flex items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium"
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
               <button
                 type="button"
                 onClick={addChapter}
-                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-transform duration-200 hover:scale-105"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-[1.02] font-medium"
               >
-                <PlusCircle size={16} /> Add Chapter
+                <PlusCircle size={18} />
+                Add New Chapter
               </button>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 p-4 border-t sticky bottom-0 bg-white z-10">
+          <div className="flex justify-end gap-3 p-6 border-t border-gray-200/50 sticky bottom-0 bg-white/95 backdrop-blur-sm z-10">
             <button
               onClick={() => setIsDialogOpen(false)}
-              className="px-4 py-2 rounded border hover:bg-gray-100 transition"
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-300 hover:scale-105 font-medium"
             >
               Cancel
             </button>
             <button
               onClick={handleCreate}
-              className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white transition-transform duration-200 hover:scale-105"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg font-medium flex items-center gap-2"
             >
-              Save
+              <PlusCircle className="h-4 w-4" />
+              Create Course
             </button>
           </div>
         </div>
