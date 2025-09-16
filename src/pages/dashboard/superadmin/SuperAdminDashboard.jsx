@@ -72,20 +72,12 @@ export default function SuperAdminDashboard() {
                         <p className="text-gray-600 mb-4">
                             Welcome to the Super Admin Dashboard. From here, you can manage all academies and monitor overall platform performance.
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
                             <div className="p-4 border border-gray-200 rounded-xl bg-slate-50">
                                 <h3 className="font-medium text-gray-800 mb-2">Quick Actions</h3>
                                 <ul className="space-y-2">
                                     <a href="/dashboard/super-admin/academies"><li className="text-blue-600 hover:underline cursor-pointer" >Create New Academy</li></a>
                                     <li className="text-blue-600 hover:underline cursor-pointer">Manage System Settings</li>
-                                </ul>
-                            </div>
-                            <div className="p-4 border border-gray-200 rounded-xl bg-slate-50">
-                                <h3 className="font-medium text-gray-800 mb-2">Recent Activity</h3>
-                                <ul className="space-y-2 text-sm text-gray-600">
-                                    <li>New academy "Tech Masters" was created</li>
-                                    <li>Revenue increased by 8% this month</li>
-                                    <li>15 new teachers joined the platform</li>
                                 </ul>
                             </div>
                         </div>

@@ -35,6 +35,8 @@ import SeancesAdmin from './pages/dashboard/academymanager/SeanceAdmin.jsx'
 import ExamsAdmin from './pages/dashboard/academymanager/ExamsAdmin.jsx'
 import TeacherDashboardExams from './pages/dashboard/teacher/TeacherDashboardExams.jsx'
 import TeacherDashboardSupport from './pages/dashboard/teacher/TeacherDashboardSupport.jsx'
+import StudentDashboardCourses from './pages/dashboard/student/StudentDashboardCourses.jsx'
+
 
 
 
@@ -242,6 +244,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["student"]}>
             <StudentDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      { 
+        path: 'academy/:academyId/student/courses', 
+        element: (
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboardCourses />
           </ProtectedRoute>
         ),
       },

@@ -144,7 +144,7 @@ export default function DashboardLayout() {
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-900">
-                    {currentAcademy.name}
+                    {currentAcademy.academyName}
                   </span>
                 </div>
                 <span className="text-xs text-slate-500 capitalize">
@@ -196,7 +196,7 @@ export default function DashboardLayout() {
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-900">
-                    {currentAcademy.name}
+                    {currentAcademy.academyName}
                   </span>
                 </div>
                 <span className="text-xs text-slate-500 capitalize">
@@ -227,7 +227,7 @@ export default function DashboardLayout() {
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <span className="text-sm font-medium text-slate-900">
-                    {currentAcademy.name}
+                    {currentAcademy.academyName}
                   </span>
                 </div>
                 <span className="text-xs text-slate-500 capitalize">
@@ -238,18 +238,10 @@ export default function DashboardLayout() {
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student`} icon={GraduationCap}>
                   My Dashboard
                 </NavLink>
-                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/courses`} icon={BookOpen}>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/courses`} icon={GraduationCap}>
                   My Courses
                 </NavLink>
-                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/sessions`} icon={BookOpen}>
-                  My Sessions
-                </NavLink>
-                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/grades`} icon={Users}>
-                  My Grades
-                </NavLink>
-                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/attendance`} icon={Users}>
-                  Attendance
-                </NavLink>
+                
               </div>
             </div>
           )}

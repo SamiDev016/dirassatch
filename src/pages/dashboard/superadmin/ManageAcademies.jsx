@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createAcademy, getAllAcademies, getStudentsByAcademy, getTeachersByAcademy, getAllTeachers, getAllStudents } from "../../../utils/auth";
+import { createAcademy, getAllAcademies, getStudentsByAcademy, getTeachersByAcademy, getAllTeachers, getAllStudents,getCoursesByAcademy } from "../../../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GraduationCap, Users, BookOpen, Building, Plus, Search, TrendingUp, Award } from "lucide-react";
@@ -33,7 +33,7 @@ export default function ManageAcademies() {
           setStats({
             totalStudents: totalStudents,
             totalTeachers: totalTeachers,
-            totalCourses: 0, // Can be enhanced later
+            totalCourses: 0,
             activeAcademies: data.length
           });
         }
@@ -316,11 +316,11 @@ function AcademyCard({ academy }) {
         setLoadingStats(true);
         const students = await getStudentsByAcademy({ academyId: academy.id || academy.academyId });
         const teachers = await getTeachersByAcademy({ academyId: academy.id || academy.academyId });
-        
+        const courses = await getCoursesByAcademy({ academyId: academy.id || academy.academyId });
         setAcademyStats({
           students: students ? students.length : 0,
           teachers: teachers ? teachers.length : 0,
-          courses: 0 // Can be enhanced later
+          courses: courses ? courses.length : 0
         });
       } catch (err) {
         console.error('Error fetching academy stats:', err);
