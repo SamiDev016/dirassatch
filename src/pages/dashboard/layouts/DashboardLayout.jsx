@@ -65,10 +65,11 @@ export default function DashboardLayout() {
   const currentAcademy = academies.find(
     (a) => String(a.academyId) === String(academyId)
   );
+  const selectedRole = localStorage.getItem("selectedRole");
   const isAcademyAdmin =
     currentAcademy &&
-    (currentAcademy.roles.includes("manager") ||
-      currentAcademy.roles.includes("owner"));
+    selectedRole &&
+    (selectedRole === "manager" || selectedRole === "owner");
 
   const NavLink = ({ to, icon: Icon, children }) => {
     const isActive = location.pathname === to;
@@ -180,6 +181,74 @@ export default function DashboardLayout() {
                 </NavLink>
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/settings`} icon={Settings}>
                   Settings
+                </NavLink>
+              </div>
+            </div>
+          )}
+
+          {/* Teacher Section */}
+          {selectedRole === "teacher" && currentAcademy && (
+            <div className="mb-8">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+                Teacher Dashboard
+              </h3>
+              <div className="bg-slate-50 rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-slate-900">
+                    {currentAcademy.name}
+                  </span>
+                </div>
+                <span className="text-xs text-slate-500 capitalize">
+                  {selectedRole}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/teacher`} icon={GraduationCap}>
+                  My Dashboard
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/teacher/exams`} icon={BookOpen}>
+                  Exams
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/teacher/supports`} icon={Users}>
+                  Supports
+                </NavLink>
+              </div>
+            </div>
+          )}
+
+          {/* Student Section */}
+          {selectedRole === "student" && currentAcademy && (
+            <div className="mb-8">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+                Student Dashboard
+              </h3>
+              <div className="bg-slate-50 rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-slate-900">
+                    {currentAcademy.name}
+                  </span>
+                </div>
+                <span className="text-xs text-slate-500 capitalize">
+                  {selectedRole}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student`} icon={GraduationCap}>
+                  My Dashboard
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/courses`} icon={BookOpen}>
+                  My Courses
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/sessions`} icon={BookOpen}>
+                  My Sessions
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/grades`} icon={Users}>
+                  My Grades
+                </NavLink>
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/student/attendance`} icon={Users}>
+                  Attendance
                 </NavLink>
               </div>
             </div>

@@ -63,7 +63,7 @@ export default function DashboardHome() {
             <div className="max-w-4xl mx-auto">
                 {/* Header Section */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to EduDash</h1>
+                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome to DirassaTech</h1>
                     <p className="text-slate-600">Choose an academy and role to access your dashboard.</p>
                 </div>
 

@@ -61,23 +61,13 @@ const Header = () => {
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
             {isLoggedIn() ? (
-              getIsSuperAdmin() ? (
-                <>
-                  <button
-                    onClick={() => navigate("/dashboard")}
-                    className="px-4 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition"
-                  >
-                    Admin Dashboard
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    disabled={loggingOut}
-                    className="px-4 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-50"
-                  >
-                    {loggingOut ? <Spinner /> : "Logout"}
-                  </button>
-                </>
-              ) : (
+              <>
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="px-4 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition"
+                >
+                  Admin Dashboard
+                </button>
                 <button
                   onClick={handleLogout}
                   disabled={loggingOut}
@@ -85,7 +75,7 @@ const Header = () => {
                 >
                   {loggingOut ? <Spinner /> : "Logout"}
                 </button>
-              )
+              </>
             ) : (
               <>
                 <button
@@ -135,17 +125,15 @@ const Header = () => {
             <div className="mt-2 flex flex-col gap-2">
               {isLoggedIn() ? (
                 <>
-                  {getIsSuperAdmin() && (
-                    <button
-                      onClick={() => {
-                        navigate("/dashboard");
-                        setMobileOpen(false);
-                      }}
-                      className="w-full px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition"
-                    >
-                      Admin Dashboard
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      navigate("/dashboard");
+                      setMobileOpen(false);
+                    }}
+                    className="w-full px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition"
+                  >
+                    Admin Dashboard
+                  </button>
                   <button
                     onClick={handleLogout}
                     disabled={loggingOut}

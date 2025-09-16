@@ -1,5 +1,4 @@
 
-import Search from "../components/Search"
 import Spinner from "../components/Spinner"
 import AcademyCard from "../components/AcademyCard"
 import { useOutletContext } from "react-router-dom"
@@ -8,6 +7,8 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import CourseCard from "../components/CourseCard"
 import PersonCard from "../components/PersonCard"
+import { getAllStudents, getAllTeachers, getTeachersByAcademy, getAllAcademies } from "../utils/auth"
+import { useEffect, useState } from "react"
 
 function FeatureBox({ color, text }) {
   return (
@@ -23,25 +24,50 @@ function FeatureBox({ color, text }) {
 const Home = () => {
   const {search,setSearch,academies, errorMessage, isLoading, posts, courses } = useOutletContext();
 
+  const [studentsCount, setStudentsCount] = useState(0);
+  const [teachersCount, setTeachersCount] = useState(0);
+  const [teachers, setTeachers] = useState([]);
+
+  // Function to get all teachers as an array
+  const getAllTeachersArray = async () => {
+    const academies = await getAllAcademies();
+    let allTeachers = [];
+    
+    for (let i = 0; i < academies.length; i++) {
+      const academy = academies[i];
+      const academyTeachers = await getTeachersByAcademy({ academyId: academy.id || academy.academyId });
+      allTeachers = [...allTeachers, ...academyTeachers];
+    }
+    
+    return allTeachers;
+  };
+
+  // Function to map teacher data to PersonCard format
+  const mapTeacherToCard = (teacher, index) => {
+    return {
+      id: teacher.id || teacher.userId || index,
+      name: `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || `Teacher ${index + 1}`,
+      photo: teacher.photo || teacher.avatar || `https://images.unsplash.com/photo-${1507003211169 + index}-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80`,
+      role: teacher.role || "Instructor",
+      specialty: teacher.specialty || teacher.subject || "Subject Specialist",
+      studentCount: teacher.studentCount || "0",
+      courseCount: teacher.courseCount || "0",
+      email: teacher.email || teacher.account?.email || ""
+    };
+  };
+
+  useEffect(() => {
+    getAllStudents().then(count => setStudentsCount(count));
+    getAllTeachers().then(count => setTeachersCount(count));
+    getAllTeachersArray().then(teachers => setTeachers(teachers));
+  }, []);
+
   return (
     <div className="p-5">
       <div id="slider" className="flex flex-col justify-center items-center">
         <h2 className="text-2xl font-bold mb-2">Learn Eveywhere</h2>
         <p className="text-center">Dirassa Tech is a platform that provides a wide range of educational resources and opportunities for students, teachers, and academies to learn and grow.</p>
-        {/* <div className="flex items-center gap-2 w-1/2">
-                <input
-                    type="text"
-                    placeholder="Search Academies"
-                    className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 cursor-pointer text-white"
-                />
-                <button
-                    type="button"
-                    disabled
-                    className="cursor-pointer hover:bg-blue-600 text-white rounded-lg p-2 transition flex items-center justify-center"
-                >
-                    <img src="../public/search.svg" alt="search" className="w-5 h-5" />
-                </button>
-            </div> */}
+        
       </div>
 
 
@@ -107,12 +133,12 @@ const Home = () => {
                 </div>
                 
                 <div className="bg-amber-50 p-4 rounded-lg shadow-sm flex flex-col items-center justify-center transition-transform duration-300 hover:transform hover:scale-105">
-                  <span className="text-2xl font-bold text-amber-600">24</span>
+                  <span className="text-2xl font-bold text-amber-600">{teachersCount || 0}</span>
                   <span className="text-gray-600 text-sm">Expert Teachers</span>
                 </div>
                 
                 <div className="bg-purple-50 p-4 rounded-lg shadow-sm flex flex-col items-center justify-center transition-transform duration-300 hover:transform hover:scale-105">
-                  <span className="text-2xl font-bold text-purple-600">1200+</span>
+                  <span className="text-2xl font-bold text-purple-600">{studentsCount || 0}</span>
                   <span className="text-gray-600 text-sm">Happy Students</span>
                 </div>
               </div>
@@ -416,50 +442,15 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                id: 1,
-                name: "Dr. Mokrani Ahmed",
-                photo: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
-                role: "Senior Instructor",
-                specialty: "Computer Science",
-                studentCount: "120",
-                courseCount: "8",
-                email: "mokrani@dirassatech.com"
-              },
-              {
-                id: 2,
-                name: "Prof. Said Karim",
-                photo: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1176&q=80",
-                role: "Lead Educator",
-                specialty: "Mathematics",
-                studentCount: "95",
-                courseCount: "6",
-                email: "said@dirassatech.com"
-              },
-              {
-                id: 3,
-                name: "Dr. Mostafa Riad",
-                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-                role: "Senior Instructor",
-                specialty: "Physics",
-                studentCount: "85",
-                courseCount: "5",
-                email: "mostafa@dirassatech.com"
-              },
-              {
-                id: 4,
-                name: "Prof. Amine Khalid",
-                photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-                role: "Instructor",
-                specialty: "Chemistry",
-                studentCount: "75",
-                courseCount: "4",
-                email: "amine@dirassatech.com"
-              }
-            ].map(teacher => (
-              <PersonCard key={teacher.id} person={teacher} />
-            ))}
+            {teachers.length > 0 ? (
+              teachers.slice(0, 8).map((teacher, index) => (
+                <PersonCard key={teacher.id || index} person={mapTeacherToCard(teacher, index)} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-500">Loading teachers...</p>
+              </div>
+            )}
           </div>
           
           <div className="text-center mt-10">

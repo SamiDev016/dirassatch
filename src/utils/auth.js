@@ -526,21 +526,28 @@ export async function createChapter({ name, description, order, isPublished, cou
 }
 
 
-export async function getChaptersByCourse({id}){
+export async function getChaptersByCourse({courseId}){
+    console.log('🔍 getChaptersByCourse called with courseId:', courseId);
     const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
     : "/api";
     try {
-        const response = await fetch(`${API_BASE}/chapters/course/${id}`, {
+        console.log('🔍 Making API call to:', `${API_BASE}/chapters/course/${courseId}`);
+        const response = await fetch(`${API_BASE}/chapters/course/${courseId}`, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`,
             }
         });
-        if (!response.ok) throw new Error("Failed to get chapters by course");
+        console.log('🔍 API response status:', response.status);
+        if (!response.ok) {
+            console.error('🔴 API response not ok:', response.statusText);
+            throw new Error(`Failed to get chapters by course. Status: ${response.status}`);
+        }
         const result = await response.json();
+        console.log('🟢 API response data:', result);
         return result;
     } catch (error) {
-        console.error("Error getting chapters by course:", error);
+        console.error("🔴 Error getting chapters by course:", error);
         return null;
     }
 }
@@ -1018,7 +1025,7 @@ export async function getAllTeachers() {
     return count;
 }
 export async function getAllStudents() {
-    const academies = await getAllAcademies(); // add const
+    const academies = await getAllAcademies(); 
     let count = 0;
 
     for (let i = 0; i < academies.length; i++) {
@@ -1708,6 +1715,179 @@ export async function acceptEnrollmentRequest({id}){
         return result;
     } catch (error) {
         console.error("Error accepting enrollment request:", error);
+        return null;
+    }
+}
+
+// Enrollment Request API
+export async function createEnrollmentRequest({groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/enrollment-request`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ groupId })
+        });
+        if (!response.ok) throw new Error("Failed to create enrollment request");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error creating enrollment request:", error);
+        return null;
+    }
+}
+
+
+//support 
+// title required
+// description string
+// type required enum (document,video,link,exercise)
+// url string
+// content string
+// isPublished boolean true ,false
+// order number required
+// sectionId required
+// fileDate (upload file type string($binary))
+export async function createSupport({title,description,type,url,content,isPublished,order,sectionId ,fileData}){
+    console.log('🔍 createSupport called with:', { title, description, type, url, content, isPublished, order, sectionId, hasFileData: !!fileData });
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        // Use FormData for file uploads to avoid payload size issues
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('type', type);
+        formData.append('url', url || '');
+        formData.append('content', content || '');
+        formData.append('isPublished', isPublished);
+        formData.append('order', order);
+        formData.append('sectionId', sectionId);
+        
+        // Only append fileData if it exists and is not too large
+        if (fileData) {
+            // Check if fileData is a base64 string and extract the actual data
+            if (typeof fileData === 'string' && fileData.startsWith('data:')) {
+                // Extract the base64 part after the comma
+                const base64Data = fileData.split(',')[1];
+                if (base64Data && base64Data.length < 1000000) { // Less than 1MB
+                    formData.append('fileData', base64Data);
+                } else {
+                    console.warn('🟡 File too large, skipping file upload');
+                }
+            } else {
+                formData.append('fileData', fileData);
+            }
+        }
+        
+        console.log('🔍 Making API call to:', `${API_BASE}/supports`);
+        const response = await fetch(`${API_BASE}/supports`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                // Don't set Content-Type when using FormData, browser will set it automatically with boundary
+            },
+            body: formData
+        });
+        
+        console.log('🔍 API response status:', response.status);
+        if (!response.ok) {
+            console.error('🔴 API response not ok:', response.statusText);
+            throw new Error(`Failed to create support. Status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('🟢 API response data:', result);
+        return result;
+    } catch (error) {
+        console.error("🔴 Error creating support:", error);
+        return null;
+    }
+}
+
+
+export async function getAllSupportsBySection({sectionId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/supports/section/${sectionId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch supports by section");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching supports by section:", error);
+        return null;
+    }
+}
+
+export async function getSupportById({supportId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/supports/${supportId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch support by id");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching support by id:", error);
+        return null;
+    }
+}
+
+export async function updateSupport({supportId,title,description,type,url,content,isPublished,order,sectionId ,fileData}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/supports/${supportId}`, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title,description,type,url,content,isPublished,order,sectionId ,fileData })
+        });
+        if (!response.ok) throw new Error("Failed to update support");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error updating support:", error);
+        return null;
+    }
+}
+
+export async function deleteSupport({supportId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/supports/${supportId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to delete support");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error deleting support:", error);
         return null;
     }
 }
