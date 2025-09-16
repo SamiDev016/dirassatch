@@ -130,6 +130,9 @@ export default function DashboardLayout() {
                 <NavLink to="/dashboard/super-admin/academies" icon={GraduationCap}>
                   Manage Academies
                 </NavLink>
+                <NavLink to="/dashboard/super-admin/modules" icon={GraduationCap}>
+                  Manage Modules
+                </NavLink>
               </div>
             </div>
           )}
@@ -161,9 +164,6 @@ export default function DashboardLayout() {
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/courses`} icon={BookOpen}>
                   Courses
                 </NavLink>
-                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/modules`} icon={Layers}>
-                  Modules
-                </NavLink>
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/groups`} icon={Users}>
                   Groups
                 </NavLink>
@@ -173,12 +173,12 @@ export default function DashboardLayout() {
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/sections`} icon={MousePointerBanIcon}>
                   Sections
                 </NavLink>
-                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/seances`} icon={BookOpen}>
-                  Seances
+                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/sessions`} icon={BookOpen}>
+                  Sessions
                 </NavLink>
-                <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/exams`} icon={BookOpen}>
+                {/* <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/exams`} icon={BookOpen}>
                   Exams
-                </NavLink>
+                </NavLink> */}
                 <NavLink to={`/dashboard/academy/${currentAcademy.academyId}/admin/settings`} icon={Settings}>
                   Settings
                 </NavLink>

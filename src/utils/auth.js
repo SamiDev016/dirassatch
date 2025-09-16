@@ -1772,18 +1772,29 @@ export async function createSupport({title,description,type,url,content,isPublis
         
         // Only append fileData if it exists and is not too large
         if (fileData) {
+            // Check if fileData is a File object (from file input)
+            if (fileData instanceof File) {
+                console.log('🔍 Uploading file object:', fileData.name, fileData.type, fileData.size);
+                formData.append('fileDate', fileData);
+            } 
             // Check if fileData is a base64 string and extract the actual data
-            if (typeof fileData === 'string' && fileData.startsWith('data:')) {
+            else if (typeof fileData === 'string' && fileData.startsWith('data:')) {
                 // Extract the base64 part after the comma
                 const base64Data = fileData.split(',')[1];
                 if (base64Data && base64Data.length < 1000000) { // Less than 1MB
-                    formData.append('fileData', base64Data);
+                    formData.append('fileDate', base64Data);
                 } else {
                     console.warn('🟡 File too large, skipping file upload');
                 }
             } else {
-                formData.append('fileData', fileData);
+                formData.append('fileDate', fileData);
             }
+        }
+        
+        // Log FormData contents for debugging
+        console.log('🔍 FormData contents being sent:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value);
         }
         
         console.log('🔍 Making API call to:', `${API_BASE}/supports`);
@@ -1799,7 +1810,10 @@ export async function createSupport({title,description,type,url,content,isPublis
         console.log('🔍 API response status:', response.status);
         if (!response.ok) {
             console.error('🔴 API response not ok:', response.statusText);
-            throw new Error(`Failed to create support. Status: ${response.status}`);
+            // Try to get the error response body
+            const errorText = await response.text();
+            console.error('🔴 API error response:', errorText);
+            throw new Error(`Failed to create support. Status: ${response.status}. Error: ${errorText}`);
         }
         
         const result = await response.json();
@@ -1851,23 +1865,64 @@ export async function getSupportById({supportId}){
 }
 
 export async function updateSupport({supportId,title,description,type,url,content,isPublished,order,sectionId ,fileData}){
+    console.log('🔍 updateSupport called with:', { supportId, title, description, type, url, content, isPublished, order, sectionId, hasFileData: !!fileData });
     const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
     : "/api";
     try {
+        // Use FormData for file uploads to avoid payload size issues
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('type', type);
+        formData.append('url', url || '');
+        formData.append('content', content || '');
+        formData.append('isPublished', isPublished);
+        formData.append('order', order);
+        formData.append('sectionId', sectionId);
+        
+        // Only append fileData if it exists and is not too large
+        if (fileData) {
+            // Check if fileData is a File object (from file input)
+            if (fileData instanceof File) {
+                console.log('🔍 Updating with file object:', fileData.name, fileData.type, fileData.size);
+                formData.append('fileDate', fileData);
+            } 
+            // Check if fileData is a base64 string and extract the actual data
+            else if (typeof fileData === 'string' && fileData.startsWith('data:')) {
+                // Extract the base64 part after the comma
+                const base64Data = fileData.split(',')[1];
+                if (base64Data && base64Data.length < 1000000) { // Less than 1MB
+                    formData.append('fileDate', base64Data);
+                } else {
+                    console.warn('🟡 File too large, skipping file upload');
+                }
+            } else {
+                formData.append('fileDate', fileData);
+            }
+        }
+        
+        console.log('🔍 Making API call to:', `${API_BASE}/supports/${supportId}`);
         const response = await fetch(`${API_BASE}/supports/${supportId}`, {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${getToken()}`,
-                "Content-Type": "application/json",
+                // Don't set Content-Type when using FormData, browser will set it automatically with boundary
             },
-            body: JSON.stringify({ title,description,type,url,content,isPublished,order,sectionId ,fileData })
+            body: formData
         });
-        if (!response.ok) throw new Error("Failed to update support");
+        
+        console.log('🔍 API response status:', response.status);
+        if (!response.ok) {
+            console.error('🔴 API response not ok:', response.statusText);
+            throw new Error(`Failed to update support. Status: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('🟢 API response data:', result);
         return result;
     } catch (error) {
-        console.error("Error updating support:", error);
+        console.error("🔴 Error updating support:", error);
         return null;
     }
 }

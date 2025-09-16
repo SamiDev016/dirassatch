@@ -1,7 +1,7 @@
 import { getUserData, getChaptersByCourse, getSectionsByChapter, getAllSupportsBySection } from "../../../utils/auth";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Users, GraduationCap, Calendar, Clock, ChevronRight, X, FileText, FolderOpen, Video, Download, Loader2 } from "lucide-react";
+import { BookOpen, Users, GraduationCap, Calendar, Clock, ChevronRight, X, FileText, FolderOpen, Video, Download, Loader2, Eye, ExternalLink } from "lucide-react";
 
 export default function StudentDashboardCourses() {
   const [userData, setUserData] = useState(null);
@@ -19,6 +19,10 @@ export default function StudentDashboardCourses() {
     loading: false,
     error: null
   });
+  
+  // Preview modal state
+  const [previewSupport, setPreviewSupport] = useState(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -146,6 +150,19 @@ export default function StudentDashboardCourses() {
       loading: false,
       error: null
     });
+  };
+
+  // Function to open preview modal
+  const handlePreview = (support) => {
+    console.log('🔍 Opening preview for support:', support);
+    setPreviewSupport(support);
+    setIsPreviewModalOpen(true);
+  };
+
+  // Function to close preview modal
+  const handleClosePreview = () => {
+    setIsPreviewModalOpen(false);
+    setPreviewSupport(null);
   };
 
   if (loading) {
@@ -413,9 +430,18 @@ export default function StudentDashboardCourses() {
                                                     )}
                                                   </div>
                                                 </div>
-                                                <button className="text-blue-600 hover:text-blue-700 p-1 rounded transition-colors duration-200">
-                                                  <Download className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex items-center space-x-1">
+                                                  <button 
+                                                    onClick={() => handlePreview(support)}
+                                                    className="text-green-600 hover:text-green-700 p-1 rounded transition-colors duration-200"
+                                                    title="Preview"
+                                                  >
+                                                    <Eye className="w-4 h-4" />
+                                                  </button>
+                                                  <button className="text-blue-600 hover:text-blue-700 p-1 rounded transition-colors duration-200">
+                                                    <Download className="w-4 h-4" />
+                                                  </button>
+                                                </div>
                                               </div>
                                             ))}
                                           </div>
@@ -432,6 +458,181 @@ export default function StudentDashboardCourses() {
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Preview Modal */}
+      <AnimatePresence>
+        {isPreviewModalOpen && previewSupport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleClosePreview}
+              className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+            />
+            
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {previewSupport.type === 'VIDEO' ? (
+                      <Video className="w-6 h-6" />
+                    ) : (
+                      <FileText className="w-6 h-6" />
+                    )}
+                    <div>
+                      <h2 className="text-xl font-bold">{previewSupport.title}</h2>
+                      <p className="text-green-100 text-sm">
+                        {previewSupport.type} • {previewSupport.isPublished ? 'Published' : 'Draft'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleClosePreview}
+                    className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors duration-200"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                {/* Support Info */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        Order: {previewSupport.order}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        previewSupport.isPublished 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {previewSupport.isPublished ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {previewSupport.description && (
+                    <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                      <h3 className="font-medium text-gray-900 mb-2">Description</h3>
+                      <p className="text-gray-700">{previewSupport.description}</p>
+                    </div>
+                  )}
+                  
+                  {previewSupport.content && (
+                    <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                      <h3 className="font-medium text-gray-900 mb-2">Content</h3>
+                      <p className="text-gray-700">{previewSupport.content}</p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* File Preview */}
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
+                  
+                  {previewSupport.type === 'VIDEO' ? (
+                    <div className="space-y-4">
+                      {previewSupport.url ? (
+                        <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                          <video 
+                            controls 
+                            className="w-full h-full"
+                            preload="metadata"
+                          >
+                            <source src={previewSupport.url} type="video/mp4" />
+                            <source src={previewSupport.url} type="video/webm" />
+                            <source src={previewSupport.url} type="video/ogg" />
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      ) : (
+                        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                          <div className="text-center">
+                            <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-600">No video URL available</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {previewSupport.url && (
+                        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Video URL</p>
+                            <p className="text-xs text-gray-600 truncate max-w-md">{previewSupport.url}</p>
+                          </div>
+                          <a
+                            href={previewSupport.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-700 p-2 rounded-lg transition-colors duration-200"
+                            title="Open in new tab"
+                          >
+                            <ExternalLink className="w-5 h-5" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {previewSupport.url ? (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600 mb-4">Document available for download</p>
+                          <a
+                            href={previewSupport.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download Document
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-600">No document URL available</p>
+                        </div>
+                      )}
+                      
+                      {previewSupport.url && (
+                        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Document URL</p>
+                            <p className="text-xs text-gray-600 truncate max-w-md">{previewSupport.url}</p>
+                          </div>
+                          <a
+                            href={previewSupport.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-700 p-2 rounded-lg transition-colors duration-200"
+                            title="Open in new tab"
+                          >
+                            <ExternalLink className="w-5 h-5" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>

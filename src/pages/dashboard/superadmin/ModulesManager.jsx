@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { PlusCircle, Edit2, Check, X, Layers, Search, Filter, Trash2 } from "lucide-react";
 import { getAllModules, createModule, updateModule } from "../../../utils/auth";
 
-export default function ModulesAdmin() {
+export default function ModulesManager() {
   const [modules, setModules] = useState([]);
   const [newModuleName, setNewModuleName] = useState("");
   const [editingId, setEditingId] = useState(null);

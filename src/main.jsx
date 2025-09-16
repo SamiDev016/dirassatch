@@ -23,7 +23,6 @@ import ProfileSettings from './pages/dashboard/ProfileSettings.jsx'
 import AcademyDetails from './pages/dashboard/superadmin/AcademyDetails.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import ChaptersAdmin from './pages/dashboard/academymanager/ChaptersAdmin.jsx'
-import ModulesAdmin from './pages/dashboard/academymanager/ModulesAdmin.jsx'
 import CoursesAdmin from './pages/dashboard/academymanager/CoursesAdmin.jsx'
 import GroupsAdmin from './pages/dashboard/academymanager/GroupsAdmin.jsx'
 import ProfileAdminDashboard from './pages/dashboard/academymanager/ProfileAdminDashboard.jsx'
@@ -36,6 +35,7 @@ import ExamsAdmin from './pages/dashboard/academymanager/ExamsAdmin.jsx'
 import TeacherDashboardExams from './pages/dashboard/teacher/TeacherDashboardExams.jsx'
 import TeacherDashboardSupport from './pages/dashboard/teacher/TeacherDashboardSupport.jsx'
 import StudentDashboardCourses from './pages/dashboard/student/StudentDashboardCourses.jsx'
+import ModulesManager from './pages/dashboard/superadmin/ModulesManager.jsx'
 
 
 
@@ -127,6 +127,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: 'super-admin/modules',
+        element: (
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <ModulesManager />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: 'academy/:academyId/admin',
         element: (
           <ProtectedRoute allowedRoles={["manager", "owner"]}>
@@ -147,14 +155,6 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={["manager", "owner"]}>
             <ChaptersAdmin />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'academy/:academyId/admin/modules',
-        element: (
-          <ProtectedRoute allowedRoles={["manager", "owner"]}>
-            <ModulesAdmin />
           </ProtectedRoute>
         ),
       },
@@ -183,21 +183,21 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: 'academy/:academyId/admin/seances',
+        path: 'academy/:academyId/admin/sessions',
         element: (
           <ProtectedRoute allowedRoles={["manager", "owner"]}>
             <SeancesAdmin />
           </ProtectedRoute>
         ),
       },
-      {
-        path: 'academy/:academyId/admin/exams',
-        element: (
-          <ProtectedRoute allowedRoles={["manager", "owner"]}>
-            <ExamsAdmin />
-          </ProtectedRoute>
-        ),
-      },
+      // {
+      //   path: 'academy/:academyId/admin/exams',
+      //   element: (
+      //     <ProtectedRoute allowedRoles={["manager", "owner"]}>
+      //       <ExamsAdmin />
+      //     </ProtectedRoute>
+      //   ),
+      // },
       {
         path: 'academy/:academyId/admin/teachers',
         element: (

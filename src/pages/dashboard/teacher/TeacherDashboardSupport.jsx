@@ -140,14 +140,13 @@ export default function TeacherDashboardSupport() {
   function handleFileUpload(e) {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData(prev => ({
-          ...prev,
-          fileData: e.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+      // Store the actual file object for upload
+      setFormData(prev => ({
+        ...prev,
+        fileData: file
+      }));
+      
+      console.log('🔍 File selected for upload:', file.name);
     }
   }
 
@@ -168,6 +167,9 @@ export default function TeacherDashboardSupport() {
       });
     } else {
       setEditingSupport(null);
+      // Ensure we have a valid sectionId
+      const currentSectionId = selectedSection || (sections.length > 0 ? sections[0].id : "");
+      console.log('🔍 Setting up new support form with sectionId:', currentSectionId);
       setFormData({
         title: "",
         description: "",
@@ -176,7 +178,7 @@ export default function TeacherDashboardSupport() {
         content: "",
         isPublished: true,
         order: supports.length + 1,
-        sectionId: selectedSection || "",
+        sectionId: currentSectionId,
         fileData: null,
       });
     }
@@ -195,6 +197,7 @@ export default function TeacherDashboardSupport() {
     
     console.log('🔍 submitForm called with formData:', formData);
     
+    // Prepare support data for API
     const supportData = {
       title: formData.title,
       description: formData.description,
@@ -210,7 +213,8 @@ export default function TeacherDashboardSupport() {
     console.log('🔍 supportData prepared:', {
       ...supportData,
       fileData: supportData.fileData ? 'File data present' : 'No file data',
-      fileDataLength: supportData.fileData ? supportData.fileData.length : 0
+      fileName: supportData.fileData?.name || 'N/A',
+      fileSize: supportData.fileData?.size || 0
     });
 
     let result;
@@ -226,6 +230,18 @@ export default function TeacherDashboardSupport() {
     }
     
     console.log('🔍 API result:', result);
+    
+    // Check if the API returned a URL for the uploaded file
+    if (result && result.url) {
+      console.log('🟢 File uploaded successfully, URL:', result.url);
+      // Update the form data with the returned URL
+      setFormData(prev => ({
+        ...prev,
+        url: result.url
+      }));
+    } else if (result && formData.fileData) {
+      console.log('🟡 No URL returned from API, but file was uploaded');
+    }
 
     if (result) {
       console.log('🟢 Support created/updated successfully, refreshing supports list');
@@ -236,46 +252,34 @@ export default function TeacherDashboardSupport() {
     }
   }
 
-  // Preview support
+  // Preview support - handle file uploads and content
   function previewSupport(support) {
-    console.log('🔍 previewSupport called with:', support);
+    console.log('🔍 Previewing support:', support);
     
-    switch (support.type) {
-      case 'link':
-        if (support.url) {
-          console.log('🔍 Opening link:', support.url);
-          window.open(support.url, '_blank', 'noopener,noreferrer');
-        } else {
-          alert('No URL available for this link');
-        }
-        break;
-        
-      case 'video':
-        if (support.url) {
-          console.log('🔍 Opening video:', support.url);
-          window.open(support.url, '_blank', 'noopener,noreferrer');
-        } else {
-          alert('No video URL available');
-        }
-        break;
-        
-      case 'document':
-        // For documents, we would typically open a PDF viewer or download
-        // Since the API response doesn't include file data, we'll show a message
-        alert('Document preview would open here. File handling needs to be implemented on the backend.');
-        break;
-        
-      case 'exercise':
-        // For exercises, we could show a modal with the content
-        if (support.content) {
-          alert(`Exercise:\n\n${support.content}`);
-        } else {
-          alert('No exercise content available');
-        }
-        break;
-        
-      default:
-        alert('Preview not available for this type');
+    // Check if API returned a URL (for uploaded files)
+    if (support.url) {
+      console.log('🔍 Opening URL:', support.url);
+      window.open(support.url, '_blank', 'noopener,noreferrer');
+    } 
+    // Handle content-based types
+    else if (support.type === 'exercise' && support.content) {
+      alert(`Exercise:\n\n${support.content}`);
+    }
+    // Handle file-based types (documents, videos)
+    else if (support.type === 'document' || support.type === 'video') {
+      if (support.fileData) {
+        console.log('🔍 File data available but no URL returned from API');
+        alert('File uploaded successfully! The file will be available for download once processed by the server.');
+      } else {
+        alert(`No file available for this ${support.type}`);
+      }
+    }
+    // Handle link types
+    else if (support.type === 'link') {
+      alert('No URL available for this link');
+    }
+    else {
+      alert(`No preview available for this ${support.type}`);
     }
   }
 
