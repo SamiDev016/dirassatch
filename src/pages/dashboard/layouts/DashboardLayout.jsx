@@ -96,7 +96,7 @@ export default function DashboardLayout() {
         {/* Header */}
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <div className="flex flex-row gap-2 items-center">
+            <div className="flex flex-row gap-2 items-center cursor-pointer" onClick={() => navigate("/")}>
               <img src="https://png.pngtree.com/png-clipart/20230928/original/pngtree-education-school-logo-design-student-literature-academy-vector-png-image_12898118.png" alt="" className="w-10 h-10" />
               <h2 className="text-xl font-bold text-slate-900">DirassaTech</h2>
             </div>

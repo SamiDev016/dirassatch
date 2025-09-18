@@ -1665,10 +1665,10 @@ export async function getLevelOfUserByModule({userId,moduleId}){
     ? import.meta.env.VITE_API_URL
     : "/api";
     try {
-        const response = await fetch(`${API_BASE}/exams/module-level/${moduleId}/${userId}`, {
+        const response = await fetch(`${API_BASE}/exams/module-level/${moduleId}/user/${userId}`, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`,
-            }
+            },
         });
         if (!response.ok) throw new Error("Failed to fetch level of user by module");
         const result = await response.json();
@@ -1680,24 +1680,7 @@ export async function getLevelOfUserByModule({userId,moduleId}){
 }
 
 //enrollment request
-export async function getEnrollmentRequestsByCourse({courseId}){
-    const API_BASE = import.meta.env.PROD
-    ? import.meta.env.VITE_API_URL
-    : "/api";
-    try {
-        const response = await fetch(`${API_BASE}/enrollment-request/course/${courseId}`, {
-            headers: {
-                "Authorization": `Bearer ${getToken()}`,
-            }
-        });
-        if (!response.ok) throw new Error("Failed to fetch enrollment requests by course");
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error("Error fetching enrollment requests by course:", error);
-        return null;
-    }
-}
+
 
 export async function acceptEnrollmentRequest({id}){
     const API_BASE = import.meta.env.PROD
@@ -1719,19 +1702,38 @@ export async function acceptEnrollmentRequest({id}){
     }
 }
 
-// Enrollment Request API
-export async function createEnrollmentRequest({groupId}){
+export async function rejectEnrollmentRequest({id}){
     const API_BASE = import.meta.env.PROD
     ? import.meta.env.VITE_API_URL
     : "/api";
     try {
-        const response = await fetch(`${API_BASE}/enrollment-request`, {
+        const response = await fetch(`${API_BASE}/enrollment-request/${id}/reject`, {
+            method: "PATCH",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to reject enrollment request");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error rejecting enrollment request:", error);
+        return null;
+    }
+}
+
+export async function createEnrollmentRequest({userId,groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/enrollment-request/create`, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${getToken()}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ groupId })
+            body: JSON.stringify({ userId, groupId })
         });
         if (!response.ok) throw new Error("Failed to create enrollment request");
         const result = await response.json();
@@ -1742,17 +1744,44 @@ export async function createEnrollmentRequest({groupId}){
     }
 }
 
+export async function getEnrollmentRequestsByGroup({groupId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/enrollment-request/group/${groupId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch enrollment requests for group");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching enrollment requests for group:", error);
+        return null;
+    }
+}
 
-//support 
-// title required
-// description string
-// type required enum (document,video,link,exercise)
-// url string
-// content string
-// isPublished boolean true ,false
-// order number required
-// sectionId required
-// fileDate (upload file type string($binary))
+export async function getEnrollmentRequestsByUser({userId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/enrollment-request/user/${userId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch enrollment requests for user");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching enrollment requests for user:", error);
+        return null;
+    }
+}
+
 export async function createSupport({title,description,type,url,content,isPublished,order,sectionId ,fileData}){
     console.log('🔍 createSupport called with:', { title, description, type, url, content, isPublished, order, sectionId, hasFileData: !!fileData });
     const API_BASE = import.meta.env.PROD
@@ -1943,6 +1972,26 @@ export async function deleteSupport({supportId}){
         return result;
     } catch (error) {
         console.error("Error deleting support:", error);
+        return null;
+    }
+}
+
+
+export async function getCoursesBymodeult({moduleId}){
+    const API_BASE = import.meta.env.PROD
+    ? import.meta.env.VITE_API_URL
+    : "/api";
+    try {
+        const response = await fetch(`${API_BASE}/courses/module/${moduleId}`, {
+            headers: {
+                "Authorization": `Bearer ${getToken()}`,
+            }
+        });
+        if (!response.ok) throw new Error("Failed to fetch courses by module");
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("Error fetching courses by module:", error);
         return null;
     }
 }

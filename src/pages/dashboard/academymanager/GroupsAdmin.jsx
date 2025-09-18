@@ -11,8 +11,9 @@ import {
   getUserByEmail,
   getUserById,
   getGroupByID,
-  getEnrollmentRequestsByCourse,
   acceptEnrollmentRequest,
+  rejectEnrollmentRequest,
+  getEnrollmentRequestsByGroup,
 } from "../../../utils/auth";
 import {
   Users,
@@ -37,13 +38,11 @@ export default function GroupsAdmin() {
   const [memberDetails, setMemberDetails] = useState([]);
   const [enrollmentRequests, setEnrollmentRequests] = useState([]);
   const [selectedGroupDetails, setSelectedGroupDetails] = useState(null);
-  const [showGroupSelectionModal, setShowGroupSelectionModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [selectedGroupId, setSelectedGroupId] = useState("");
   const [formData, setFormData] = useState({ id: null, name: "", courseId: "" });
   const [memberForm, setMemberForm] = useState({ email: "", role: "STUDENT" });
   const [loading, setLoading] = useState(false);
   const [academyId, setAcademyId] = useState(null);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   // Load academyId from localStorage once
   useEffect(() => {
@@ -140,7 +139,7 @@ export default function GroupsAdmin() {
     
     // Fetch enrollment requests for the course
     if (groupDetails && groupDetails.courseId) {
-      const requests = await getEnrollmentRequestsByCourse({ courseId: groupDetails.courseId });
+      const requests = await getEnrollmentRequestsByGroup({ groupId: groupDetails.id });
       if (requests) {
         setEnrollmentRequests(requests);
       }
@@ -180,56 +179,58 @@ export default function GroupsAdmin() {
     handleSelectGroup(selectedGroup);
   }
 
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
+
   async function handleAcceptEnrollment(request) {
-    setSelectedRequest(request);
-    setSelectedGroupId("");
-    setShowGroupSelectionModal(true);
-  }
-
-  async function handleConfirmGroupSelection() {
-    if (!selectedRequest || !selectedGroupId) {
-      alert("Please select a group");
-      return;
-    }
-
+    if (!confirm("Are you sure you want to accept this enrollment request?")) return;
+    
     try {
-      // Accept the enrollment request
-      const acceptResult = await acceptEnrollmentRequest({ id: selectedRequest.id });
+      const acceptResult = await acceptEnrollmentRequest({ id: request.id });
       
       if (acceptResult) {
-        // Add the student to the selected group
-        // Note: We need to get the student ID from the request
-        const studentId = selectedRequest.studentId || selectedRequest.userId;
-        if (studentId) {
-          await addMemberToGroup({
-            userId: parseInt(studentId, 10),
-            groupId: parseInt(selectedGroupId, 10),
-            role: "STUDENT"
-          });
-        }
-        
         // Remove the accepted request from local state
         setEnrollmentRequests(prevRequests => 
-          prevRequests.filter(request => request.id !== selectedRequest.id)
+          prevRequests.filter(r => r.id !== request.id)
         );
         
-        // Close modal and reset state
-        setShowGroupSelectionModal(false);
-        setSelectedRequest(null);
-        setSelectedGroupId("");
+        showToast("Enrollment request accepted successfully!", 'success');
         
-        alert("Enrollment request accepted and student added to group successfully!");
-        
-        // Refresh the selected group if it's the one we added to
-        if (selectedGroup && selectedGroup.id === parseInt(selectedGroupId, 10)) {
+        // Refresh the selected group to show the new member
+        if (selectedGroup) {
           handleSelectGroup(selectedGroup);
         }
       } else {
-        alert("Failed to accept enrollment request");
+        showToast("Failed to accept enrollment request", 'error');
       }
     } catch (error) {
-      console.error("Error processing enrollment request:", error);
-      alert("Failed to process enrollment request");
+      console.error("Error accepting enrollment request:", error);
+      showToast("Failed to accept enrollment request", 'error');
+    }
+  }
+
+
+  async function handleRejectEnrollment(request) {
+    if (!confirm("Are you sure you want to reject this enrollment request?")) return;
+    
+    try {
+      const rejectResult = await rejectEnrollmentRequest({ id: request.id });
+      
+      if (rejectResult) {
+        // Remove the rejected request from local state
+        setEnrollmentRequests(prevRequests => 
+          prevRequests.filter(r => r.id !== request.id)
+        );
+        
+        showToast("Enrollment request rejected successfully!", 'success');
+      } else {
+        showToast("Failed to reject enrollment request", 'error');
+      }
+    } catch (error) {
+      console.error("Error rejecting enrollment request:", error);
+      showToast("Failed to reject enrollment request", 'error');
     }
   }
 
@@ -585,32 +586,81 @@ export default function GroupsAdmin() {
                 {enrollmentRequests.map((request) => (
                   <div
                     key={request.id}
-                    className="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:border-green-200 hover:shadow-sm transition-all duration-200"
+                    className={`border rounded-lg p-4 flex justify-between items-center transition-all duration-200 ${
+                      request.status === 'Pending' 
+                        ? 'border-gray-200 hover:border-green-200 hover:shadow-sm' 
+                        : request.status === 'Approved' 
+                          ? 'border-green-200 bg-green-50' 
+                          : 'border-red-200 bg-red-50'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="bg-green-100 rounded-full p-2">
-                        <UserPlus className="h-5 w-5 text-green-600" />
+                      <div className={`rounded-full p-2 ${
+                        request.status === 'Pending' 
+                          ? 'bg-green-100' 
+                          : request.status === 'Approved' 
+                            ? 'bg-green-200' 
+                            : 'bg-red-200'
+                      }`}>
+                        <UserPlus className={`h-5 w-5 ${
+                          request.status === 'Pending' 
+                            ? 'text-green-600' 
+                            : request.status === 'Approved' 
+                              ? 'text-green-700' 
+                              : 'text-red-600'
+                        }`} />
                       </div>
                       <div>
                         <p className="font-medium text-gray-800">
-                          {request.studentName || request.studentEmail || `Student ID: ${request.studentId || request.userId || 'Unknown'}`}
+                          {request.user.firstName + " " + request.user.lastName || `Student ID: ${request.studentId || request.userId || 'Unknown'}`}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {request.studentEmail && request.studentName && <span>{request.studentEmail}</span>}
+                          {request.user.email && request.user.firstName && <span>{request.user.email}</span>}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Requested: {request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'Unknown date'}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-sm text-gray-500">
+                            Requested: {request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'Unknown date'}
+                          </p>
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            request.status === 'Pending' 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : request.status === 'Approved' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                          }`}>
+                            {request.status || 'Pending'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <button
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2 shadow-sm"
-                      onClick={() => handleAcceptEnrollment(request)}
-                      title="Accept Request"
-                    >
-                      <UserCheck className="h-4 w-4" />
-                      Accept
-                    </button>
+                    {request.status === 'Pending' ? (
+                      <div className="flex gap-2">
+                        <button
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2 shadow-sm"
+                          onClick={() => handleAcceptEnrollment(request)}
+                          title="Accept Request"
+                        >
+                          <UserCheck className="h-4 w-4" />
+                          Accept
+                        </button>
+                        <button
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-sm"
+                          onClick={() => handleRejectEnrollment(request)}
+                          title="Reject Request"
+                        >
+                          <UserX className="h-4 w-4" />
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <div className={`px-3 py-1 rounded-lg font-medium ${
+                        request.status === 'Approved' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {request.status === 'Approved' ? '✓ Approved' : '✗ Rejected'}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -619,74 +669,20 @@ export default function GroupsAdmin() {
         </div>
       )}
 
-      {/* Group Selection Modal */}
-      {showGroupSelectionModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <UserPlus className="h-5 w-5 text-green-600" />
-                  Select Group for Enrollment
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowGroupSelectionModal(false);
-                    setSelectedRequest(null);
-                    setSelectedGroupId("");
-                  }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Student:</p>
-                <p className="font-medium text-gray-800">
-                  {selectedRequest.studentName || selectedRequest.studentEmail || `Student ID: ${selectedRequest.studentId || selectedRequest.userId || 'Unknown'}`}
-                </p>
-              </div>
-              
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Group to Add Student:
-                </label>
-                <select
-                  value={selectedGroupId}
-                  onChange={(e) => setSelectedGroupId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                >
-                  <option value="">Choose a group...</option>
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => {
-                    setShowGroupSelectionModal(false);
-                    setSelectedRequest(null);
-                    setSelectedGroupId("");
-                  }}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmGroupSelection}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2"
-                  disabled={!selectedGroupId}
-                >
-                  <UserCheck className="h-4 w-4" />
-                  Accept & Add to Group
-                </button>
-              </div>
-            </div>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-medium transition-all duration-300 transform ${
+          toast.type === 'success' 
+            ? 'bg-green-600 hover:bg-green-700' 
+            : 'bg-red-600 hover:bg-red-700'
+        }`}>
+          <div className="flex items-center gap-2">
+            {toast.type === 'success' ? (
+              <UserCheck className="h-5 w-5" />
+            ) : (
+              <UserX className="h-5 w-5" />
+            )}
+            {toast.message}
           </div>
         </div>
       )}

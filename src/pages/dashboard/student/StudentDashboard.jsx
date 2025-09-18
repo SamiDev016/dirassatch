@@ -3,14 +3,17 @@ import { motion } from "framer-motion";
 import { 
   User, Mail, Calendar, BookOpen, Users, Clock, Award, 
   MapPin, Video, CheckCircle, XCircle, AlertCircle, 
-  TrendingUp, GraduationCap, Eye, FileText
+  TrendingUp, GraduationCap, Eye, FileText, Target,
+  BarChart3, Star, Zap, Layers
 } from "lucide-react";
 import { 
   getUserData, 
   getSeanceByGroup, 
   getAttendanceBySeanceUser, 
   getExamsByGroup, 
-  getAllGradsByUser
+  getAllGradsByUser,
+  getLevelOfUserByModule,
+  getCoursesBymodeult
 } from "../../../utils/auth";
 
 export default function StudentDashboard() {
@@ -21,6 +24,9 @@ export default function StudentDashboard() {
   const [attendance, setAttendance] = useState({});
   const [exams, setExams] = useState([]);
   const [grades, setGrades] = useState([]);
+  const [moduleLevel, setModuleLevel] = useState(null);
+  const [moduleCourses, setModuleCourses] = useState([]);
+  const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [stats, setStats] = useState({
     totalCourses: 0,
     totalGroups: 0,
@@ -30,20 +36,15 @@ export default function StudentDashboard() {
     averageGrade: 0
   });
 
-  // Debug: Check what's in localStorage
   const debugLocalStorage = () => {
     console.log('=== DEBUG: LocalStorage Contents ===');
     const user = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    console.log('user:', user);
-    console.log('token:', token);
-    console.log('user parsed:', user ? JSON.parse(user) : null);
     return { user, token };
   };
 
   useEffect(() => {
     const fetchStudentData = async () => {
-      // Debug: Check localStorage contents
       const { user, token } = debugLocalStorage();
       
       if (!token) {
@@ -195,6 +196,48 @@ export default function StudentDashboard() {
           totalExams: allExams.length,
           averageGrade
         }));
+        
+        // Fetch module level data (using first group's course as module ID)
+        if (studentGroups.length > 0 && studentGroups[0].course?.id) {
+          try {
+            const moduleId = studentGroups[0].course.id;
+            setSelectedModuleId(moduleId);
+            console.log('DEBUG: Module ID:', moduleId);
+            
+            // Fetch user level for this module - the API automatically gets user ID from token
+            const userLevel = await getLevelOfUserByModule({ userId: student.id,moduleId: moduleId });
+            console.log('DEBUG: User module level:', userLevel);
+            
+            if (userLevel) {
+              // Transform the API response to match our expected structure
+              const transformedLevel = {
+                level: userLevel.level,
+                score: userLevel.level, // Using level as score for now
+                levelDescription: userLevel.levelDescription,
+                totalExams: userLevel.totalExams,
+                completedCourses: userLevel.completedCourses,
+                totalCourses: userLevel.totalCourses,
+                courseResults: userLevel.courseResults || []
+              };
+              setModuleLevel(transformedLevel);
+              
+              // Transform course results to match our courses structure
+              const transformedCourses = userLevel.courseResults?.map(course => ({
+                id: course.courseId,
+                name: course.courseName,
+                description: `Average Grade: ${course.averageGrade}, Exams: ${course.examCount}`,
+                averageGrade: course.averageGrade,
+                examCount: course.examCount,
+                createdAt: new Date().toISOString() // Use current date as fallback
+              })) || [];
+              
+              setModuleCourses(transformedCourses);
+            }
+            
+          } catch (error) {
+            console.log('DEBUG: No module level data found - this is normal:', error.message);
+          }
+        }
         
       } catch (err) {
         console.error('Error fetching student data:', err);
@@ -368,6 +411,152 @@ export default function StudentDashboard() {
           </div>
         </motion.div>
       </div>
+
+      {/* Module Level Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.6 }}
+        className="mb-8"
+      >
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Target className="w-6 h-6" />
+              Module Progress
+            </h2>
+            {selectedModuleId && (
+              <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
+                Module ID: {selectedModuleId}
+              </span>
+            )}
+          </div>
+          
+          {moduleLevel ? (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Level Card */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm opacity-80">Current Level</p>
+                    <p className="text-2xl font-bold">{moduleLevel.level || 'N/A'}</p>
+                    <p className="text-xs opacity-70 mt-1">{moduleLevel.levelDescription || 'Progress'}</p>
+                  </div>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-2">
+                  <div 
+                    className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((moduleLevel.level / 20) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              {/* Exams Card */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm opacity-80">Total Exams</p>
+                    <p className="text-2xl font-bold">{moduleLevel.totalExams || 0}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Award className="w-4 h-4 text-yellow-300" />
+                  <span>Exams completed</span>
+                </div>
+              </div>
+              
+              {/* Courses Progress Card */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm opacity-80">Courses Progress</p>
+                    <p className="text-2xl font-bold">{moduleLevel.completedCourses || 0}/{moduleLevel.totalCourses || 0}</p>
+                  </div>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-2">
+                  <div 
+                    className="bg-green-400 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${moduleLevel.totalCourses > 0 ? (moduleLevel.completedCourses / moduleLevel.totalCourses) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              {/* Performance Card */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm opacity-80">Performance</p>
+                    <p className="text-2xl font-bold">{moduleLevel.level || 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Zap className="w-4 h-4 text-yellow-300" />
+                  <span>{moduleLevel.level >= 15 ? 'Excellent' : moduleLevel.level >= 10 ? 'Good' : 'Keep Going'}</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Target className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg opacity-80">No module level data available</p>
+              <p className="text-sm opacity-60 mt-2">Complete courses to see your progress</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Module Courses List */}
+        {moduleCourses.length > 0 && (
+          <div className="mt-6 bg-white rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800">
+              <BookOpen className="w-5 h-5 text-blue-600" />
+              Courses in this Module
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {moduleCourses.map((course, index) => (
+                <motion.div
+                  key={course.id || index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 hover:border-blue-300"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="bg-blue-100 rounded-lg p-2">
+                      <BookOpen className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 mb-1">{course.name || 'Course Name'}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{course.description || 'Course description'}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Award className="w-3 h-3" />
+                          <span>Avg Grade: {course.averageGrade || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <FileText className="w-3 h-3" />
+                          <span>Exams: {course.examCount || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Section */}
